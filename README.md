@@ -29,7 +29,7 @@ The `scripts/` folder automates both the **Terraform repo structure** and the **
 
 - Create a minimal Terraform folder structure (providers, versions, backend)
 - Bootstrap AWS resources for state + IAM/OIDC trust for GitHub
-- Wire up GitHub repo secrets/vars and drop a working workflow YAML
+- Wire up GitHub repo secrets/vars and drop working workflow YAMLs
 
 ---
 
@@ -49,10 +49,7 @@ AWS_REGION="us-west-2"
 TF_BACKEND_BUCKET="your-tfstate-bucket-name"
 TF_LOCK_TABLE="terraform-locks"     # optional; empty to skip
 OIDC_ROLE_NAME="github-oidc-terraform"
-# ...and any other repo/env-specific values referenced by the other scripts
 ```
-
-> Tip: Commit a company-safe version of this file (without secrets). Values like role ARN are set via GitHub **Secrets/Variables** in later steps.
 
 ---
 
@@ -80,135 +77,187 @@ Run **`scripts/2-bootstrap_tf.sh`** to:
 bash scripts/2-bootstrap_tf.sh
 ```
 
-> Results: You’ll get an IAM Role ARN (e.g., `arn:aws:iam::<acct>:role/github-oidc-terraform`) and the backend resources ready for `terraform init`.
-
 ---
 
 ### 4) Set GitHub Variables & Secrets
 Run **`scripts/3-variables.sh`** to wire your repo’s **Actions → Secrets/Variables**:
 
 - **Secrets**
-  - `AWS_ROLE_TO_ASSUME` → *the IAM Role ARN created in Step 3*
+  - `AWS_ROLE_ARN` → *the IAM Role ARN created in Step 3*
 - **Variables**
   - `AWS_REGION` → e.g., `us-west-2`
   - `TF_BACKEND_BUCKET` → your S3 bucket
-  - `TF_BACKEND_DYNAMODB_TABLE` → your lock table (or leave empty if unused)
+  - `TF_BACKEND_KEY` → backend key (e.g., `global/s3/terraform.tfstate`)
+  - `TF_BACKEND_DDB_TABLE` → your lock table (or leave empty if unused)
 
 ```bash
 bash scripts/3-variables.sh
 ```
 
-This script uses the GitHub API/CLI (depending on your implementation) to set these centrally for your workflows.
+---
+
+### 5) Install the CI/CD workflows
+
+Run **`scripts/4-workflow.sh`** to lay down two workflows under `.github/workflows/`:
+
+- **`terraform-ci.yml`** → Runs on feature branches and PRs into `main`  
+- **`terraform-apply.yml`** → Runs only when changes are merged to `main`
+
+```text
+.github/workflows/
+ ├─ terraform-ci.yml
+ └─ terraform-apply.yml
+```
 
 ---
 
-### 5) Install the CI/CD workflow
-Run **`scripts/4-workflow.sh`** to lay down `.github/workflows/terraform.yml` and commit it.
-
-```bash
-bash scripts/4-workflow.sh
-```
-
-A typical workflow includes:
+#### `terraform-ci.yml` (feature branches & PRs)
 
 ```yaml
-name: Terraform CI/CD
-
+name: terraform-ci
 on:
-  pull_request:
-    branches: [ main ]
   push:
-    branches: [ main ]
+    branches-ignore: [main]
+  pull_request:
+    branches: [main]
 
 permissions:
-  id-token: write   # enables GitHub→AWS OIDC
   contents: read
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
+  TF_IN_AUTOMATION: "true"
   AWS_REGION: ${{ vars.AWS_REGION }}
   TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
-  TF_BACKEND_DYNAMODB_TABLE: ${{ vars.TF_BACKEND_DYNAMODB_TABLE }}
+  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
+  TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
+  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
 jobs:
-  validate_and_plan:
-    if: github.event_name == 'pull_request'
+  terraform-ci:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
-          aws-region: ${{ env.AWS_REGION }}
-      - uses: hashicorp/setup-terraform@v3
-      - run: terraform fmt -check -recursive
-      - run: |
-          terraform init             -backend-config="bucket=${TF_BACKEND_BUCKET}"             -backend-config="dynamodb_table=${TF_BACKEND_DYNAMODB_TABLE}"             -backend-config="region=${AWS_REGION}"
-      - run: terraform validate
-      - run: terraform plan -no-color
 
-  apply_main:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: prod       # require approvals in GitHub → Environments
-    steps:
-      - uses: actions/checkout@v4
-      - uses: aws-actions/configure-aws-credentials@v4
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
-      - uses: hashicorp/setup-terraform@v3
-      - run: |
-          terraform init             -backend-config="bucket=${TF_BACKEND_BUCKET}"             -backend-config="dynamodb_table=${TF_BACKEND_DYNAMODB_TABLE}"             -backend-config="region=${AWS_REGION}"
-      - run: terraform apply -auto-approve -input=false
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init (S3 backend)
+        run: |
+          terraform init             -backend-config="bucket=${TF_BACKEND_BUCKET}"             -backend-config="key=${TF_BACKEND_KEY}"             -backend-config="region=${AWS_REGION}"             -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
+
+      - name: Format Check
+        run: terraform fmt -check -diff
+
+      - name: Validate
+        run: terraform validate
+
+      - name: Plan
+        run: terraform plan -input=false -out=plan.tfplan
+
+      - name: Show Plan (for PR readability)
+        if: github.event_name == 'pull_request'
+        run: terraform show -no-color plan.tfplan | tee plan.txt
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: plan
+          path: plan.txt
 ```
 
-> **Why `id-token: write`?** It lets the workflow request an OIDC token from GitHub, which AWS verifies to permit assuming your IAM role—no static AWS keys needed.
+---
+
+#### `terraform-apply.yml` (main branch only)
+
+```yaml
+name: terraform-apply
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-main
+  cancel-in-progress: false
+
+env:
+  TF_IN_AUTOMATION: "true"
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
+  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
+  TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
+  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init (S3 backend)
+        run: |
+          terraform init             -backend-config="bucket=${TF_BACKEND_BUCKET}"             -backend-config="key=${TF_BACKEND_KEY}"             -backend-config="region=${AWS_REGION}"             -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
+
+      - name: Terraform Apply
+        run: terraform apply -input=false -auto-approve
+```
 
 ---
 
 ## After the 5 Steps
 
-1. **Protect `main`**: GitHub → Settings → Branches → Branch protection rules  
-   Require PR reviews and passing checks before merging.
-2. **Create a PR** with a small Terraform change.  
-   CI should run `fmt/validate/plan` and show the plan in the job logs.
-3. **Merge to `main`** to trigger the **apply** (with environment approval if you configured one).
+1. **Protect `main`**: Require PR reviews and passing checks before merging.  
+2. **Create a PR** → `terraform-ci.yml` runs `fmt/validate/plan` and uploads plan artifact.  
+3. **Merge to main** → `terraform-apply.yml` runs `apply` (with optional environment approvals).
 
 ---
 
-## Environments & Workspaces (optional patterns)
+## File Map
 
-- **GitHub Environments**: Use `environment: dev` / `environment: prod` to require approvals per target.
-- **Terraform Workspaces**: If you prefer, set `TF_WORKSPACE` as a variable and run `terraform workspace select $TF_WORKSPACE` in steps.
-
----
-
-## Troubleshooting
-
-- **Cannot assume role**  
-  - Check the OIDC **trust policy** repo/branch conditions and that `permissions: id-token: write` is present.
-- **Backend init errors**  
-  - Ensure the bucket/table exist and you passed `-backend-config=...` values during `terraform init`.
-- **Apply blocked**  
-  - Confirm you’re pushing to `main`, the workflow includes `environment: prod`, and approvals are configured in **Environments**.
-
----
-
-## File Map (key items)
-
-- `scripts/0-variables.sh` — Fill me first (org/repo/AWS/account/bucket/role names)
+- `scripts/0-variables.sh` — Fill in your org/repo/AWS/account values
 - `scripts/1-repo_structure.sh` — Create & push Terraform folder structure
-- `scripts/2-bootstrap_tf.sh` — Provision S3/DynamoDB, OIDC provider, IAM role
-- `scripts/3-variables.sh` — Set GitHub repo Variables & Secrets
-- `scripts/4-workflow.sh` — Install CI/CD workflow YAML
-- `.github/workflows/terraform.yml` — The pipeline itself
-- `GH_OIDC_rundown.md` — OIDC trust/role deep dive
-- `cicd_step_by_step_terraform_repo.md` — Long-form guide
+- `scripts/2-bootstrap_tf.sh` — Provision backend + OIDC provider/role
+- `scripts/3-variables.sh` — Set GitHub Variables & Secrets
+- `scripts/4-workflow.sh` — Install CI/CD workflows
+- `.github/workflows/terraform-ci.yml` — CI workflow for PRs/branches
+- `.github/workflows/terraform-apply.yml` — Apply workflow for main
+- `GH_OIDC_rundown.md` — OIDC trust/role details
+- `cicd_step_by_step_terraform_repo.md` — Full walkthrough
 
 ---
 
 ## Notes & Safety
 
-- Limit your IAM role’s permissions to only what Terraform needs (plus S3/DynamoDB for state).
-- Constrain the OIDC trust to specific repo **and** branches/tags using conditions.
-- Use **required reviewers** on `prod` environment to guard `apply`.
+- Limit IAM role permissions to only what Terraform needs.  
+- Restrict OIDC trust policy to your repo + branch.  
+- Use **GitHub Environments** with required reviewers for production applies.
