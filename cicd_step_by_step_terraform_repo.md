@@ -1,4 +1,4 @@
-# this is Terraform CI/CD on GitHub with S3 Backend (Step‑by‑Step Guid)
+# This is Terraform CI/CD on GitHub with S3 Backend (Step‑by‑Step Guid)
 
 A practical, copy‑pasteable walkthrough for first‑timers. You’ll build a Terraform repository on GitHub that:
 
