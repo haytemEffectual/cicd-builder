@@ -1,8 +1,8 @@
 #!/bin/bash
-# minimal Terraform layout
+# minimal Terraform folder layout
 echo "creating modules and workflow dirs, and main.tf, providers.tf, versions.tf"
-mkdir -p modules/ .github/workflows
-touch modules/.keep .github/workflows/.keep
+mkdir -p modules/ .github/workflows # build basic structure -- modules and workflows dirs
+touch modules/.keep .github/workflows/.keep # keep files to retain empty dirs in git
 cat > versions.tf <<'TF'
 terraform {
   required_version = ">= 1.6.0"

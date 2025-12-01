@@ -7,7 +7,7 @@ aws s3api create-bucket \
   --bucket "$TF_BACKEND_BUCKET" \
   --region "$AWS_REGION" \
   --create-bucket-configuration LocationConstraint="$AWS_REGION" \
-  > /dev/null || true
+  > /dev/null || true # Ignore error if bucket already exists and /dev/null to suppress output
 
 echo "Configuring S3 bucket settings..."
 aws s3api put-bucket-versioning --bucket "$TF_BACKEND_BUCKET" --versioning-configuration Status=Enabled

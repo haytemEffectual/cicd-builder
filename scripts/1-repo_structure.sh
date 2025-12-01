@@ -1,6 +1,6 @@
 #!/bin/bash
 . scripts/0-variables.sh
-# create a private repo with default branch 'main'
+# create a private repo with default branch 'main' locally and remotely on GitHub
 echo "###### putting on initial repo folder structure ######"
 echo "..... creating remote repo"
 gh repo create "$OWNER/$REPO" --private --description "Terraform Repo" 
