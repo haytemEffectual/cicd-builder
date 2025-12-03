@@ -2,8 +2,8 @@
 ### Create a GitHub Actions workflow file for Terraform CI
 . scripts/0-variables.sh
 cd "$REPO"
-echo "Creating GitHub Actions workflow files..."
-echo "  - .github/workflows/terraform-ci.yml"
+echo "##..... 4-Creating GitHub Actions workflow files..."
+echo "#####  - .github/workflows/terraform-ci.yml"
 cat > .github/workflows/terraform-ci.yml <<'CI'
 name: terraform-ci
 on:
@@ -77,7 +77,7 @@ CI
 
 
 ### Create a GitHub Actions workflow file for Terraform APPLY
-echo "  - .github/workflows/terraform-apply.yml"
+echo "#####  - .github/workflows/terraform-apply.yml"
 cat > .github/workflows/terraform-apply.yml <<'APPLY'
 name: terraform-apply
 on:

@@ -1,5 +1,6 @@
 #!/bin/bash
-
+#### This will set GitHub repo variables and secrets needed for the GitHub Actions workflows
+echo "## 3- Setting GitHub repo variables and secrets ##"
 . scripts/0-variables.sh
 cd "$REPO"
 git checkout

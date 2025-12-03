@@ -4,7 +4,7 @@
 ##############################################################
 # 1- Settings → Branches → Add rule
 # 2- Branch name pattern: main
-# 3- Check:
+# 3- guardrails (choose the following):
 #     i-      Require a pull request before merging
 #     ii-     Require approvals: set to 1 (or per policy)
 #     iii-    Require status checks to pass: add terraform-ci
@@ -13,7 +13,7 @@
 #     vi-     Include administrators
 #     vii-    Leave force pushes & deletions unchecked
 ##############################################################
-echo "Applying branch protection rules to main branch..."
+echo "## .... 5- Applying GH branch protection rules to main branch..."
 . scripts/0-variables.sh
 cd "$REPO"
 cat > protection.json <<'JSON'
