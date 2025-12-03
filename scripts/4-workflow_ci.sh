@@ -1,5 +1,10 @@
 #!/bin/bash
-### Create a GitHub Actions workflow file for Terraform CI
+################################################################################################
+## 4- This will create a GitHub Actions workflow file for Terraform CI                        ## 
+##    1- for PRs and feature branches plan only:   github/workflows/terraform-ci.yml          ##
+##    2- for main branch apply only:               github/workflows/terraform-apply.yml       ##
+################################################################################################
+set -e
 . scripts/0-variables.sh
 cd "$REPO"
 echo "##..... 4-Creating GitHub Actions workflow files..."

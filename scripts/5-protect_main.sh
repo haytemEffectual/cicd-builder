@@ -15,7 +15,14 @@
 ##############################################################
 echo "## .... 5- Applying GH branch protection rules to main branch..."
 . scripts/0-variables.sh
+echo "changing dir to "/$REPO""
 cd "$REPO"
+echo "#####..... pushing final change to the remote repo"
+git pull origin main
+git add .
+git commit -m "finalizing the repo structure"
+git push -u origin main
+echo "#####..... applying branch protection rules to main branch"
 cat > protection.json <<'JSON'
 {
   "required_status_checks": {
@@ -41,5 +48,4 @@ gh api -X PUT \
 rm protection.json
 echo "Branch protection rules applied to main branch."
 cd ..
-
-
+echo "###### Repo structure finalized, branch protection applied, and pushed to remote ######"
