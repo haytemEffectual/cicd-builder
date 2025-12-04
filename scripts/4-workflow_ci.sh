@@ -58,7 +58,8 @@ jobs:
             -backend-config="bucket=${TF_BACKEND_BUCKET}" \
             -backend-config="key=${TF_BACKEND_KEY}" \
             -backend-config="region=${AWS_REGION}" \
-            -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
+            -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"\
+            -backend-config="encrypt=true"
 
       - name: Format Check
         run: terraform fmt -check -diff
@@ -108,7 +109,7 @@ env:
 jobs:
   apply:
     runs-on: ubuntu-latest
-    environment: production  # optional: gate with environment approvals
+    # environment: production  # optional: gate with environment approvals
 
     steps:
       - uses: actions/checkout@v4
@@ -130,7 +131,8 @@ jobs:
             -backend-config="bucket=${TF_BACKEND_BUCKET}" \
             -backend-config="key=${TF_BACKEND_KEY}" \
             -backend-config="region=${AWS_REGION}" \
-            -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
+            -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"\
+            -backend-config="encrypt=true"
 
       - name: Terraform Apply
         run: terraform apply -input=false -auto-approve

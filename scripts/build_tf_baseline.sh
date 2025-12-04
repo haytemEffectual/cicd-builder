@@ -12,20 +12,24 @@ terraform {
       version = ">= 5.0"
     }
   }
-  backend "s3" {}
+  backend "s3" {
+    # Backend configuration will be provided via terraform init flags or backend config file
+  }
 }
 TF
 
 cat > providers.tf <<'TF'
-variable "aws_region" {
-  type    = string
-  default = "us-west-2"
-}
-
 provider "aws" {
   region = var.aws_region
 }
 TF
+
+cat > variables.tf <<'VAR'
+variable "aws_region" {
+  type    = string
+  default = "us-west-2"
+}
+VAR
 
 cat > main.tf <<'TF'
 # Add Terraform main resources here
