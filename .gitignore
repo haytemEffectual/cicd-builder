@@ -4,3 +4,5 @@
 *.tfstate.*
 crash.log
 *.tfplan
+MyTerraform*/
+Containers/

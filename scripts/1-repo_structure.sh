@@ -33,7 +33,6 @@ sleep 2
 echo "#####..... checking the current dir structure"
 #tree -a -L 2
 pwd
-echo "$(pwd)"
 echo "#####..... pushing to remote repo"
 git add .
 git commit -m "init: terraform skeleton"

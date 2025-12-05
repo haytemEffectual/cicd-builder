@@ -1,263 +1,325 @@
 # cicd-builder
 
-Scaffold a **Terraform repository** with a **GitHub Actions CI/CD pipeline** on AWS using **GitHub OIDC** (no long-lived AWS keys), **remote state in S3**, and **optional DynamoDB locks**—all in a few scripted steps.
+Automated scaffolding tool to create a **Terraform repository** with a complete **GitHub Actions CI/CD pipeline** on AWS using:
 
-- CI on PRs: `fmt`, `init`, `validate`, (optional) `tflint`/`checkov`), and `plan`
-- CD on `main`: gated `apply` (with GitHub Environments for approval)
-- AWS access via **OIDC** (`permissions: id-token: write`) instead of static keys
-- Branch protection ready (recommend enabling it on `main`)
+- ✅ **GitHub OIDC** authentication (no long-lived AWS keys)
+- ✅ **S3 remote state** with **DynamoDB locking**
+- ✅ **Automated CI/CD workflows** (plan on PRs, apply on merge to main)
+- ✅ **Branch protection** ready for production use
 
-> For deeper dives, see `GH_OIDC_rundown.md` (OIDC trust + role details) and `cicd_step_by_step_terraform_repo.md` (walkthrough).
+> **Related docs:** See `GH_OIDC_integration.md` for OIDC details and `cicd_step_by_step_terraform_repo.md` for comprehensive walkthrough.
+
+---
+
+## What This Does
+
+This repository provides **automation scripts** that scaffold a complete Terraform CI/CD pipeline:
+
+1. **Creates a new Terraform repository** with proper structure
+2. **Provisions AWS infrastructure** (S3 bucket, DynamoDB table, IAM OIDC provider & role)
+3. **Configures GitHub** secrets, variables, and workflows
+4. **Sets up branch protection** on main
+5. **Installs working CI/CD workflows** (plan on PRs, apply on main)
 
 ---
 
 ## Prerequisites
 
-- **GitHub**
-  - An empty or new repo where you’ll run these scripts
-  - Admin ability to set **Actions → Secrets/Variables**, **Environments**, and **branch protection**
-- **AWS**
-  - Permissions to create: **S3 bucket**, **(optional) DynamoDB table**, **OIDC provider**, **IAM role + policy**
-- **Local tooling**
-  - `bash`, `git`, `aws` CLI (configured to your target account), and optionally `jq`
+### GitHub
+- Repository admin access
+- GitHub CLI (`gh`) installed and authenticated: `gh auth login`
+- Ability to set Actions Secrets/Variables and branch protection
+
+### AWS
+- AWS CLI configured with credentials: `aws configure`
+- Permissions to create:
+  - S3 buckets
+  - DynamoDB tables
+  - IAM OIDC providers
+  - IAM roles and policies
+
+### Local Tools
+- `bash` (v4+)
+- `git`
+- `aws` CLI
+- `gh` CLI
 
 ---
 
-## What the scripts do
+## Quick Start (6 Steps)
 
-The `scripts/` folder automates both the **Terraform repo structure** and the **AWS/GitHub plumbing** needed for CI/CD:
+### Step 1: Configure Variables
 
-- Create a minimal Terraform folder structure (providers, versions, backend)
-- Bootstrap AWS resources for state + IAM/OIDC trust for GitHub
-- Wire up GitHub repo secrets/vars and drop working workflow YAMLs
-
----
-
-## Quick Start (5 Steps)
-
-> Run these from the repo root. Review each script before executing in your environment.
-
-### 1) Fill variables
-Edit **`scripts/0-variables.sh`** with your values (region, repo, AWS account, bucket names, etc.).
+Edit **`scripts/0-variables.sh`** with your environment details:
 
 ```bash
-# Example fields you’ll typically set:
-GITHUB_OWNER="your-org-or-user"
-GITHUB_REPO="your-repo"
-AWS_ACCOUNT_ID="123456789012"
-AWS_REGION="us-west-2"
-TF_BACKEND_BUCKET="your-tfstate-bucket-name"
-TF_LOCK_TABLE="terraform-locks"     # optional; empty to skip
-OIDC_ROLE_NAME="github-oidc-terraform"
+#!/bin/bash
+OWNER="your-github-org"           # GitHub owner (org or username)
+REPO="your-terraform-repo"        # Repository name to create
+AWS_ACCOUNT_ID="123456789012"     # Your AWS account ID
+AWS_REGION="us-west-2"            # AWS region
+
+# Backend configuration (customizable)
+TF_BACKEND_KEY="terraform.tfstate"
+TF_BACKEND_DDB_TABLE="${REPO}-tf-locks"
+TF_BACKEND_BUCKET="${REPO}-tfstate-${AWS_ACCOUNT_ID}-${AWS_REGION}"
 ```
+
+**Note:** S3 bucket names are automatically converted to lowercase.
 
 ---
 
-### 2) Scaffold Terraform repo structure
-Run **`scripts/1-repo_structure.sh`** to create and push a minimal Terraform layout.
+### Step 2: Create Repository Structure
 
 ```bash
 bash scripts/1-repo_structure.sh
 ```
 
-This typically:
-- Creates `main.tf`, `providers.tf`, `versions.tf`, and backend stubs
-- Adds a sample module or root configuration
-- Commits and pushes the structure to your repo
+**What it creates:**
+- Private GitHub repository
+- Terraform file structure (main.tf, providers.tf, variables.tf, versions.tf)
+- Example VPC configuration
+- GitHub Actions workflow directories
+- Proper .gitignore
 
 ---
 
-### 3) Bootstrap AWS + CI/CD foundations (one-time)
-Run **`scripts/2-bootstrap_tf.sh`** to:
-- **Create S3 bucket** (remote backend for state)
-- **Create DynamoDB table** (optional state locking)
-- **Create AWS OIDC provider** for GitHub and its **IAM role** with a trust policy limiting which repos/branches may assume it
+### Step 3: Bootstrap AWS Infrastructure
 
 ```bash
-bash scripts/2-bootstrap_tf.sh
+bash scripts/2-bootstrap_tf_aws.sh
+```
+
+⚠️ **Important:** Use `bash`, not `sh`
+
+**What it provisions:**
+1. S3 bucket (versioned, encrypted, public access blocked)
+2. DynamoDB table for state locking
+3. GitHub OIDC provider in IAM
+4. IAM role with trust policy for your repository
+5. IAM permissions for Terraform backend access
+
+**Trust Policy Pattern:**
+```json
+"StringLike": {
+  "token.actions.githubusercontent.com:sub": [
+    "repo:{OWNER}/{REPO}:ref:refs/heads/*",
+    "repo:{OWNER}/{REPO}:pull_request"
+  ]
+}
 ```
 
 ---
 
-### 4) Set GitHub Variables & Secrets
-Run **`scripts/3-variables.sh`** to wire your repo’s **Actions → Secrets/Variables**:
-
-- **Secrets**
-  - `AWS_ROLE_ARN` → *the IAM Role ARN created in Step 3*
-- **Variables**
-  - `AWS_REGION` → e.g., `us-west-2`
-  - `TF_BACKEND_BUCKET` → your S3 bucket
-  - `TF_BACKEND_KEY` → backend key (e.g., `global/s3/terraform.tfstate`)
-  - `TF_BACKEND_DDB_TABLE` → your lock table (or leave empty if unused)
+### Step 4: Configure GitHub Secrets & Variables
 
 ```bash
-bash scripts/3-variables.sh
+bash scripts/3-set_gh_variables.sh
+```
+
+**Sets Repository Variables:**
+- OWNER, REPO, AWS_ACCOUNT_ID, AWS_REGION
+- TF_BACKEND_BUCKET, TF_BACKEND_KEY, TF_BACKEND_DDB_TABLE
+
+**Sets Repository Secrets:**
+- AWS_ROLE_ARN
+- OIDC_PROVIDER_ARN
+
+---
+
+### Step 5: Install CI/CD Workflows
+
+```bash
+bash scripts/4-workflow_ci.sh
+```
+
+**Creates workflows in generated repository:**
+- `terraform-ci.yml` - Plan on feature branches & PRs
+- `terraform-apply.yml` - Apply on main branch only
+
+---
+
+### Step 6: Protect Main Branch
+
+```bash
+bash scripts/5-protect_main.sh
+```
+
+**Applies rules:**
+- Require PR before merging
+- Require 1 approval
+- Require Terraform CI status check to pass
+- Require branches to be up to date
+- Require linear history
+- Block force pushes and deletions
+
+---
+
+## Developer Workflow
+
+```bash
+# 1. Create feature branch
+git checkout -b feature/add-infrastructure
+
+# 2. Make changes
+vim main.tf
+
+# 3. Format code
+terraform fmt
+
+# 4. Commit and push
+git add .
+git commit -m "feat: add VPC"
+git push -u origin feature/add-infrastructure
+
+# 5. Create PR
+gh pr create -B main -H feature/add-infrastructure --fill
+
+# 6. CI runs (fmt/validate/plan)
+# 7. Get approval
+# 8. Merge to main
+# 9. Apply runs automatically
 ```
 
 ---
 
-### 5) Install the CI/CD workflows
+## Repository Structure
 
-Run **`scripts/4-workflow.sh`** to lay down two workflows under `.github/workflows/`:
+```
+cicd-builder/
+├── scripts/
+│   ├── 0-variables.sh            # Configuration (EDIT FIRST)
+│   ├── 1-repo_structure.sh       # Creates repo & structure
+│   ├── 2-bootstrap_tf_aws.sh     # Provisions AWS resources
+│   ├── 3-set_gh_variables.sh     # Configures GitHub
+│   ├── 4-workflow_ci.sh          # Installs workflows
+│   ├── 5-protect_main.sh         # Branch protection
+│   ├── build_tf_baseline.sh      # Helper: generates files
+│   └── undo_bootstrap.sh         # Cleanup script
+├── .devcontainer/                # Dev container config
+├── .gitignore                    # Ignores MyTerraform*/, Containers/
+├── README.md                     # This file
+├── GH_OIDC_integration.md        # OIDC deep dive
+└── cicd_step_by_step_terraform_repo.md  # Full guide
 
-- **`terraform-ci.yml`** → Runs on feature branches and PRs into `main`  
-- **`terraform-apply.yml`** → Runs only when changes are merged to `main`
-
-```text
-.github/workflows/
- ├─ terraform-ci.yml
- └─ terraform-apply.yml
+Generated Repository ({REPO}/):
+├── .github/workflows/
+│   ├── terraform-ci.yml          # CI workflow
+│   └── terraform-apply.yml       # CD workflow
+├── modules/                      # Terraform modules
+├── main.tf                       # Infrastructure resources
+├── providers.tf                  # AWS provider
+├── variables.tf                  # Variables
+├── versions.tf                   # Versions & backend
+└── .gitignore                    # Terraform ignores
 ```
 
 ---
 
-#### `terraform-ci.yml` (feature branches & PRs)
+## Key Features
 
+### Secure Authentication
+- No AWS keys in GitHub - Uses OIDC for temporary credentials
+- Fine-grained trust - IAM role limited to specific repo/branches
+- Short-lived tokens - AWS credentials expire after ~1 hour
+- Auditable - All AWS actions logged in CloudTrail
+
+### Backend Configuration
+- Empty backend block in versions.tf (no hardcoded values)
+- Configuration via CLI flags in workflows
+- Environment variables from GitHub Variables
+- Portable across environments
+
+### CI/CD Separation
+- Plan on PRs - Review changes before apply
+- Apply on main - Only merged code affects infrastructure
+- Artifact upload - Plan output saved for review
+- Concurrency control - Prevents simultaneous applies
+
+---
+
+## Cleanup
+
+To tear down AWS infrastructure:
+
+```bash
+bash scripts/undo_bootstrap.sh
+```
+
+**Deletes:**
+1. All S3 objects (including versions)
+2. S3 bucket
+3. DynamoDB table
+4. IAM role policy
+5. IAM role
+6. OIDC provider (optional)
+
+⚠️ **Warning:** This is destructive and cannot be undone.
+
+---
+
+## Troubleshooting
+
+### "Bad substitution" error
+**Fix:** Use `bash`, not `sh`: `bash ./scripts/2-bootstrap_tf_aws.sh`
+
+### OIDC authentication fails
+**Common issue:** Using `ref:refs/pull/*` instead of `pull_request`  
+**Fix:** Re-run `bash scripts/2-bootstrap_tf_aws.sh`
+
+### AWS credentials expired
+**Fix:** `aws configure` or `aws sso login`
+
+### Backend initialization fails
+**Fix:** Run `bash scripts/3-set_gh_variables.sh`
+
+### Cannot push to main
+**Expected:** Branch protection is working  
+**Solution:** Create PR instead
+
+---
+
+## Advanced: Terraform Variables
+
+### Declaring Variables
+```hcl
+variable "vpc_cidr" {
+  type        = string
+  description = "CIDR block for VPC"
+}
+```
+
+### Providing Values
+In workflow:
 ```yaml
-name: terraform-ci
-on:
-  push:
-    branches-ignore: [main]
-  pull_request:
-    branches: [main]
-
-permissions:
-  contents: read
-  id-token: write
-  pull-requests: write
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
-  TF_IN_AUTOMATION: "true"
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
-  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
-  TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
-  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+  TF_VAR_vpc_cidr: ${{ vars.VPC_CIDR }}
+```
 
-jobs:
-  terraform-ci:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_wrapper: false
-
-      - name: Terraform Init (S3 backend)
-        run: |
-          terraform init             -backend-config="bucket=${TF_BACKEND_BUCKET}"             -backend-config="key=${TF_BACKEND_KEY}"             -backend-config="region=${AWS_REGION}"             -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
-
-      - name: Format Check
-        run: terraform fmt -check -diff
-
-      - name: Validate
-        run: terraform validate
-
-      - name: Plan
-        run: terraform plan -input=false -out=plan.tfplan
-
-      - name: Show Plan (for PR readability)
-        if: github.event_name == 'pull_request'
-        run: terraform show -no-color plan.tfplan | tee plan.txt
-
-      - name: Upload Plan Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: plan
-          path: plan.txt
+Set GitHub variable:
+```bash
+gh variable set VPC_CIDR --body "10.0.0.0/16"
 ```
 
 ---
 
-#### `terraform-apply.yml` (main branch only)
+## Security Best Practices
 
-```yaml
-name: terraform-apply
-on:
-  push:
-    branches: [main]
-
-permissions:
-  contents: read
-  id-token: write
-
-concurrency:
-  group: ${{ github.workflow }}-main
-  cancel-in-progress: false
-
-env:
-  TF_IN_AUTOMATION: "true"
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
-  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
-  TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
-  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-
-jobs:
-  apply:
-    runs-on: ubuntu-latest
-    environment: production
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_wrapper: false
-
-      - name: Terraform Init (S3 backend)
-        run: |
-          terraform init             -backend-config="bucket=${TF_BACKEND_BUCKET}"             -backend-config="key=${TF_BACKEND_KEY}"             -backend-config="region=${AWS_REGION}"             -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
-
-      - name: Terraform Apply
-        run: terraform apply -input=false -auto-approve
-```
+1. **Minimal IAM permissions** - Start with backend access only
+2. **Repository restrictions** - Trust policy limited to your repo
+3. **Branch restrictions** - Consider main branch only
+4. **GitHub Environments** - Use for production approval gates
+5. **Secrets rotation** - OIDC tokens auto-expire
+6. **Audit logging** - Review CloudTrail for AWS actions
 
 ---
 
-## After the 5 Steps
+## Additional Resources
 
-1. **Protect `main`**: Require PR reviews and passing checks before merging.  
-2. **Create a PR** → `terraform-ci.yml` runs `fmt/validate/plan` and uploads plan artifact.  
-3. **Merge to main** → `terraform-apply.yml` runs `apply` (with optional environment approvals).
-
----
-
-## File Map
-
-- `scripts/0-variables.sh` — Fill in your org/repo/AWS/account values
-- `scripts/1-repo_structure.sh` — Create & push Terraform folder structure
-- `scripts/2-bootstrap_tf.sh` — Provision backend + OIDC provider/role
-- `scripts/3-variables.sh` — Set GitHub Variables & Secrets
-- `scripts/4-workflow.sh` — Install CI/CD workflows
-- `.github/workflows/terraform-ci.yml` — CI workflow for PRs/branches
-- `.github/workflows/terraform-apply.yml` — Apply workflow for main
-- `GH_OIDC_rundown.md` — OIDC trust/role details
-- `cicd_step_by_step_terraform_repo.md` — Full walkthrough
+- [Terraform S3 Backend](https://www.terraform.io/docs/language/settings/backends/s3.html)
+- [GitHub OIDC](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/about-security-hardening-with-openid-connect)
+- [AWS IAM OIDC](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_providers_create_oidc.html)
 
 ---
 
-## Notes & Safety
-
-- Limit IAM role permissions to only what Terraform needs.  
-- Restrict OIDC trust policy to your repo + branch.  
-- Use **GitHub Environments** with required reviewers for production applies.
+**Questions?** See `cicd_step_by_step_terraform_repo.md` for detailed explanations.

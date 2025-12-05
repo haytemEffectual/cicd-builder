@@ -71,7 +71,7 @@ cat > trust-policy.json <<EOF
         "StringLike": {
           "token.actions.githubusercontent.com:sub": [
             "repo:${OWNER}/${REPO}:ref:refs/heads/*",
-            "repo:${OWNER}/${REPO}:ref:refs/pull/*"
+            "repo:${OWNER}/${REPO}:pull_request"
           ]
         }
       }
