@@ -27,7 +27,7 @@ cat > protection.json <<'JSON'
 {
   "required_status_checks": {
     "strict": true,
-    "contexts": ["terraform-ci"]
+    "contexts": ["Terraform"]
   },
   "enforce_admins": true,
   "required_pull_request_reviews": {
