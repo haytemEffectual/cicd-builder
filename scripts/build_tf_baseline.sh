@@ -13,7 +13,7 @@ terraform {
     }
   }
   backend "s3" {
-    # Backend configuration will be provided via terraform init flags or backend config file
+    # Backend configuration will be provided via terraform init flags or backend config file via GH Actions workflows
   }
 }
 TF
@@ -29,8 +29,24 @@ variable "aws_region" {
   type    = string
   default = "us-west-2"
 }
+
+# this is an example variable, for vpc_cidr that will be provided via GH Actions workflow vars
+# variable "vpc_cidr" {
+#   type = string
+# }
 VAR
 
 cat > main.tf <<'TF'
 # Add Terraform main resources here
+# As an Example,below is a VPC Configuration
+# 
+# resource "aws_vpc" "main" {
+#   cidr_block           = var.vpc_cidr
+#   enable_dns_hostnames = true
+#   enable_dns_support   = true
+
+#   tags = {
+#     Name = "test-vpc"
+#   }
+# }
 TF

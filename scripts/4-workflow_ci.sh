@@ -33,6 +33,7 @@ env:
   TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
   TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
   AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+  # TF_VAR_vpc_cidr: ${{ vars.VPC_CIDR }}
 
 jobs:
   Terraform:
@@ -85,7 +86,7 @@ jobs:
         with:
           name: plan
           path: plan.txt
-          
+
       - name: TF Apply
         run: terraform apply plan.tfplan -no-color 
         if: github.ref == 'refs/heads/main'
