@@ -19,7 +19,7 @@ This repository provides **automation scripts** that scaffold a complete Terrafo
 2. **Provisions AWS infrastructure** (S3 bucket, DynamoDB table, IAM OIDC provider & role)
 3. **Configures GitHub** secrets, variables, and workflows
 4. **Sets up branch protection** on main
-5. **Installs working CI/CD workflows** (plan on PRs, apply on main)
+5. **Installs working CI/CD workflow** (plan on PRs, apply on merging to main)
 
 ---
 
@@ -133,9 +133,8 @@ bash scripts/3-set_gh_variables.sh
 bash scripts/4-workflow_ci.sh
 ```
 
-**Creates workflows in generated repository:**
-- `terraform-ci.yml` - Plan on feature branches & PRs
-- `terraform-apply.yml` - Apply on main branch only
+**Creates workflow in generated repository:**
+- `terraform-ci.yml` - Plan on feature branches & PRs, apply on merging to main
 
 ---
 
@@ -204,8 +203,7 @@ cicd-builder/
 
 Generated Repository ({REPO}/):
 ├── .github/workflows/
-│   ├── terraform-ci.yml          # CI workflow
-│   └── terraform-apply.yml       # CD workflow
+│   └── terraform-ci.yml          # CI/CD workflow (plan + apply)
 ├── modules/                      # Terraform modules
 ├── main.tf                       # Infrastructure resources
 ├── providers.tf                  # AWS provider
@@ -230,11 +228,11 @@ Generated Repository ({REPO}/):
 - Environment variables from GitHub Variables
 - Portable across environments
 
-### CI/CD Separation
+### CI/CD Workflow
 - Plan on PRs - Review changes before apply
-- Apply on main - Only merged code affects infrastructure
+- Conditional apply - Only runs when pushed to main
 - Artifact upload - Plan output saved for review
-- Concurrency control - Prevents simultaneous applies
+- Concurrency control - Prevents simultaneous runs
 
 ---
 
