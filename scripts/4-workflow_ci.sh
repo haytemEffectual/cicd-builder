@@ -13,7 +13,7 @@ cat > .github/workflows/terraform-ci.yml <<'CI'
 name: terraform-ci
 on:
   push:
-    branches-ignore: [main]   # feature branches
+    branches: [main]   # pushes to main at the merge of PRs
   pull_request:
     branches: [main]          # PRs to main
 

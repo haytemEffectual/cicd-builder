@@ -1,7 +1,7 @@
 #!/bin/bash
 # ---- fill these in ----
 OWNER="haytemEffectual"
-REPO="MyTerraformProject-test"
+REPO="MyTerraformProject"
 AWS_ACCOUNT_ID="478530404284"
 AWS_REGION="us-west-2"
 

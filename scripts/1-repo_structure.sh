@@ -1,10 +1,10 @@
 #!/bin/bash
 ########################################################################################
 ## creating a private repo with default branch 'main' locally and remotely on GitHub  ##
-## first this                                                                         ##       
-##       1- will create the remote repo                                               ##
-##       2- Clone it locally                                                          ##    
-##       3- Build the basic structure                                                 ## 
+## This script:                                                                         ##       
+##       1- will create the remote repo, then                                              ##
+##       2- Clone it locally, then                                                          ##    
+##       3- Build the basic repo structure, finally                                                 ## 
 ##       4- Push it to remote                                                         ##           
 ########################################################################################
 set -e 
