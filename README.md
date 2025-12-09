@@ -11,6 +11,26 @@ Automated scaffolding tool to create a **Terraform repository** with a complete 
 
 ---
 
+## The Problem
+
+Building CI/CD from scratch is often tedious and time-consuming, especially before you can even begin deploying real infrastructure. CICD-builder automates the entire bootstrap process—provisioning a fully secured, production-grade Terraform CI/CD pipeline in just six commands. It automatically configures IAM, OIDC federation, GitHub workflows, remote state, environment separation, and all required AWS integrations, eliminating hours of repetitive setup and significantly reducing configuration drift.
+
+**Problems Solved:**
+
+1. **Manual Setup Complexity** - Eliminates the tedious, error-prone manual process of setting up Terraform CI/CD infrastructure from scratch
+
+2. **Security Risk of Static AWS Keys** - Replaces long-lived AWS access keys (that can leak) with secure GitHub OIDC authentication using short-lived tokens
+
+3. **Remote State Configuration** - Automates the setup of S3 backend with DynamoDB locking, avoiding state file conflicts and enabling team collaboration
+
+4. **Missing CI/CD Best Practices** - Provides production-ready workflows with automated plan on PRs, automated apply on main branch merges, branch protection, and proper concurrency controls
+
+5. **Scattered Configuration** - Centralizes all setup (AWS infrastructure, GitHub secrets/variables, workflows, branch protection) into 6 simple scripts
+
+6. **Time Investment** - Reduces hours of manual configuration to minutes of automated execution
+
+---
+
 ## What This Does
 
 This repository provides **automation scripts** that scaffold a complete Terraform CI/CD pipeline:
