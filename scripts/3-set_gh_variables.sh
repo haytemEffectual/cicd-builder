@@ -25,10 +25,11 @@ gh variable set GH_OWNER --body "$GH_OWNER"
 gh variable set REPO --body "$REPO"
 gh variable set AWS_ACCOUNT_ID --body "$AWS_ACCOUNT_ID"
 gh variable set AWS_REGION --body "$AWS_REGION"
-
+# gh variable set VPC_CIDR --body "$VPC_CIDR"  # TODO: uncomment and set VPC_CIDR if the VPC is needed to be created via TF
 gh variable set TF_BACKEND_S3_BUCKET --body "$TF_BACKEND_S3_BUCKET"
 gh variable set TF_BACKEND_S3_KEY --body "$TF_BACKEND_S3_KEY"
 gh variable set TF_BACKEND_DDB_TABLE --body "$TF_BACKEND_DDB_TABLE"
+
 gh secret set AWS_ROLE_ARN --body "$ROLE_ARN"
 gh secret set OIDC_PROVIDER_ARN --body "$OIDC_PROVIDER_ARN"
 cd ..

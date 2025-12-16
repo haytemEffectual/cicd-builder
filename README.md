@@ -1,4 +1,4 @@
-# cicd-builder
+# PIPECRAFTER ----> AKA cicd-builder
 
 Scaffold a **Terraform repository** with a **GitHub Actions CI/CD pipeline** on AWS using **GitHub OIDC** (no long-lived AWS keys), **remote state in S3**, and **optional DynamoDB locks**—all in a few scripted steps.
 

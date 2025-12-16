@@ -4,6 +4,7 @@ GH_OWNER="haytemEffectual"
 REPO="MyTerraformProject-test"
 AWS_ACCOUNT_ID="478530404284"
 AWS_REGION="us-west-2"
+# VPC_CIDR="10.0.0.0/24"  # TODO: set VPC_CIDR if the VPC is needed to be created via TF
 #
 # backend names (you can customize)
 TF_BACKEND_S3_KEY="global/terraform.tfstate"

@@ -30,7 +30,7 @@ variable "aws_region" {
   default = "us-west-2"
 }
 
-# this is an example variable, for vpc_cidr that will be provided via GH Actions workflow vars
+# TODO: uncomment and set VPC_CIDR if the VPC is needed to be created via TF
 # variable "vpc_cidr" {
 #   type = string
 # }
@@ -40,6 +40,7 @@ cat > main.tf <<'TF'
 # Add Terraform main resources here
 # As an Example,below is a VPC Configuration
 # 
+# TODO: uncomment the below VPC resource if the VPC is needed to be created via TF
 # resource "aws_vpc" "main" {
 #   cidr_block           = var.vpc_cidr
 #   enable_dns_hostnames = true
