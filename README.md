@@ -42,11 +42,11 @@ Edit **`scripts/0-variables.sh`** with your values (region, repo, AWS account, b
 
 ```bash
 # Example fields you’ll typically set:
-GITHUB_OWNER="your-org-or-user"
-GITHUB_REPO="your-repo"
+GH_OWNER="your-org-or-user"
+REPO="your-repo"
 AWS_ACCOUNT_ID="123456789012"
 AWS_REGION="us-west-2"
-TF_BACKEND_BUCKET="your-tfstate-bucket-name"
+TF_BACKEND_S3_BUCKET="your-tfstate-bucket-name"
 TF_LOCK_TABLE="terraform-locks"     # optional; empty to skip
 OIDC_ROLE_NAME="github-oidc-terraform"
 ```
@@ -86,8 +86,8 @@ Run **`scripts/3-variables.sh`** to wire your repo’s **Actions → Secrets/Var
   - `AWS_ROLE_ARN` → *the IAM Role ARN created in Step 3*
 - **Variables**
   - `AWS_REGION` → e.g., `us-west-2`
-  - `TF_BACKEND_BUCKET` → your S3 bucket
-  - `TF_BACKEND_KEY` → backend key (e.g., `global/s3/terraform.tfstate`)
+  - `TF_BACKEND_S3_BUCKET` → your S3 bucket
+  - `TF_BACKEND_S3_KEY` → backend key (e.g., `global/s3/terraform.tfstate`)
   - `TF_BACKEND_DDB_TABLE` → your lock table (or leave empty if unused)
 
 ```bash
@@ -133,8 +133,8 @@ concurrency:
 env:
   TF_IN_AUTOMATION: "true"
   AWS_REGION: ${{ vars.AWS_REGION }}
-  TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
-  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
+  TF_BACKEND_S3_BUCKET: ${{ vars.TF_BACKEND_S3_BUCKET }}
+  TF_BACKEND_S3_KEY: ${{ vars.TF_BACKEND_S3_KEY }}
   TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
   AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
@@ -157,7 +157,7 @@ jobs:
 
       - name: Terraform Init (S3 backend)
         run: |
-          terraform init             -backend-config="bucket=${TF_BACKEND_BUCKET}"             -backend-config="key=${TF_BACKEND_KEY}"             -backend-config="region=${AWS_REGION}"             -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
+          terraform init             -backend-config="bucket=${TF_BACKEND_S3_BUCKET}"             -backend-config="key=${TF_BACKEND_S3_KEY}"             -backend-config="region=${AWS_REGION}"             -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
 
       - name: Format Check
         run: terraform fmt -check -diff
@@ -200,8 +200,8 @@ concurrency:
 env:
   TF_IN_AUTOMATION: "true"
   AWS_REGION: ${{ vars.AWS_REGION }}
-  TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
-  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
+  TF_BACKEND_S3_BUCKET: ${{ vars.TF_BACKEND_S3_BUCKET }}
+  TF_BACKEND_S3_KEY: ${{ vars.TF_BACKEND_S3_KEY }}
   TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
   AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
@@ -226,7 +226,7 @@ jobs:
 
       - name: Terraform Init (S3 backend)
         run: |
-          terraform init             -backend-config="bucket=${TF_BACKEND_BUCKET}"             -backend-config="key=${TF_BACKEND_KEY}"             -backend-config="region=${AWS_REGION}"             -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
+          terraform init             -backend-config="bucket=${TF_BACKEND_S3_BUCKET}"             -backend-config="key=${TF_BACKEND_S3_KEY}"             -backend-config="region=${AWS_REGION}"             -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
 
       - name: Terraform Apply
         run: terraform apply -input=false -auto-approve

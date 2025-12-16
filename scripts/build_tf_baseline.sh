@@ -1,6 +1,6 @@
 #!/bin/bash
 # minimal Terraform folder layout
-echo "#### .....creating modules and workflow dirs, and main.tf, providers.tf, versions.tf"
+echo ">>>>>> .....creating modules and workflow dirs, and main.tf, providers.tf, versions.tf"
 mkdir -p modules/ .github/workflows # build basic structure -- modules and workflows dirs
 touch modules/.keep .github/workflows/.keep # keep files to retain empty dirs in git
 cat > versions.tf <<'TF'
@@ -12,21 +12,43 @@ terraform {
       version = ">= 5.0"
     }
   }
-  backend "s3" {}
+  backend "s3" {
+    # Backend configuration will be provided via terraform init flags or backend config file via GH Actions workflows
+  }
 }
 TF
 
 cat > providers.tf <<'TF'
-variable "aws_region" {
-  type    = string
-  default = "us-west-2"
-}
-
 provider "aws" {
   region = var.aws_region
 }
 TF
 
+cat > variables.tf <<'VAR'
+variable "aws_region" {
+  type    = string
+  default = "us-west-2"
+}
+
+# this is an example variable, for vpc_cidr that will be provided via GH Actions workflow vars
+# variable "vpc_cidr" {
+#   type = string
+# }
+VAR
+
 cat > main.tf <<'TF'
 # Add Terraform main resources here
+# As an Example,below is a VPC Configuration
+# 
+# resource "aws_vpc" "main" {
+#   cidr_block           = var.vpc_cidr
+#   enable_dns_hostnames = true
+#   enable_dns_support   = true
+
+#   tags = {
+#     Name = "test-vpc"
+#   }
+# }
 TF
+echo ">>>>>> ..... Terraform basic folder structure created."
+read -p "Press [Enter] key to continue..."

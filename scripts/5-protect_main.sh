@@ -13,14 +13,36 @@
 #     vi-     Include administrators
 #     vii-    Leave force pushes & deletions unchecked
 ##############################################################
+if ! gh repo view "$GH_OWNER/$REPO" &>/dev/null; then
+    echo "❌ Repository $GH_OWNER/$REPO does not exist!"
+    echo "Please run script 1-repo_structure.sh first to create the repository."
+    read -p "Press [Enter] key to continue..."
+    exit 0
+fi
 echo "## .... 5- Applying GH branch protection rules to main branch..."
-. scripts/0-variables.sh
+
+echo "changing dir to "/$REPO""
 cd "$REPO"
+echo ">>>>>..... pushing final change to the remote repo"
+git pull origin main
+git add .
+git commit -m "finalizing the repo structure"
+git push -u origin main
+
+# Check if main branch exists in remote
+echo ">>>>>..... checking if main branch exists"
+if ! git ls-remote --heads origin main | grep -q main; then
+    echo "❌ Error: main branch does not exist in remote repository!"
+    echo "Please ensure code has been pushed to main branch first."
+    exit 1
+fi
+
+echo ">>>>>..... applying branch protection rules to main branch"
 cat > protection.json <<'JSON'
 {
   "required_status_checks": {
     "strict": true,
-    "contexts": ["terraform-ci"]
+    "contexts": ["Terraform"]
   },
   "enforce_admins": true,
   "required_pull_request_reviews": {
@@ -36,10 +58,13 @@ JSON
 
 gh api -X PUT \
   -H "Accept: application/vnd.github+json" \
-  "/repos/$OWNER/$REPO/branches/main/protection" \
+  "/repos/$GH_OWNER/$REPO/branches/main/protection" \
   --input protection.json
 rm protection.json
 echo "Branch protection rules applied to main branch."
 cd ..
+echo "########## Branch protection applied !!! . . . ##########"
+read -p "Press [Enter] key to continue..."
+
 
 

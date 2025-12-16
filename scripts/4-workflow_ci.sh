@@ -1,9 +1,15 @@
 #!/bin/bash
 ### Create a GitHub Actions workflow file for Terraform CI
-. scripts/0-variables.sh
+
+if ! gh repo view "$GH_OWNER/$REPO" &>/dev/null; then
+    echo "❌ Repository $GH_OWNER/$REPO does not exist!"
+    echo "Please run script 1-repo_structure.sh first to create the repository."
+    read -p "Press [Enter] key to continue..."
+    exit 0
+fi
 cd "$REPO"
 echo "##..... 4-Creating GitHub Actions workflow files..."
-echo "#####  - .github/workflows/terraform-ci.yml"
+echo ">>>>>  - .github/workflows/terraform-ci.yml"
 cat > .github/workflows/terraform-ci.yml <<'CI'
 name: terraform-ci
 on:
@@ -24,8 +30,8 @@ concurrency:
 env:
   TF_IN_AUTOMATION: "true"
   AWS_REGION: ${{ vars.AWS_REGION }}
-  TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
-  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
+  TF_BACKEND_S3_BUCKET: ${{ vars.TF_BACKEND_S3_BUCKET }}
+  TF_BACKEND_S3_KEY: ${{ vars.TF_BACKEND_S3_KEY }}
   TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
   AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
@@ -50,8 +56,8 @@ jobs:
       - name: Terraform Init (S3 backend)
         run: |
           terraform init \
-            -backend-config="bucket=${TF_BACKEND_BUCKET}" \
-            -backend-config="key=${TF_BACKEND_KEY}" \
+            -backend-config="bucket=${TF_BACKEND_S3_BUCKET}" \
+            -backend-config="key=${TF_BACKEND_S3_KEY}" \
             -backend-config="region=${AWS_REGION}" \
             -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
 
@@ -75,59 +81,6 @@ jobs:
           path: plan.txt
 CI
 
-
-### Create a GitHub Actions workflow file for Terraform APPLY
-echo "#####  - .github/workflows/terraform-apply.yml"
-cat > .github/workflows/terraform-apply.yml <<'APPLY'
-name: terraform-apply
-on:
-  push:
-    branches: [main]
-
-permissions:
-  contents: read
-  id-token: write
-
-concurrency:
-  group: ${{ github.workflow }}-main
-  cancel-in-progress: false
-
-env:
-  TF_IN_AUTOMATION: "true"
-  AWS_REGION: ${{ vars.AWS_REGION }}
-  TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
-  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
-  TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
-  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
-
-jobs:
-  apply:
-    runs-on: ubuntu-latest
-    environment: production  # optional: gate with environment approvals
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure AWS credentials (OIDC)
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ env.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_wrapper: false
-
-      - name: Terraform Init (S3 backend)
-        run: |
-          terraform init \
-            -backend-config="bucket=${TF_BACKEND_BUCKET}" \
-            -backend-config="key=${TF_BACKEND_KEY}" \
-            -backend-config="region=${AWS_REGION}" \
-            -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
-
-      - name: Terraform Apply
-        run: terraform apply -input=false -auto-approve
-APPLY
 cd ..
+echo "########## GitHub Actions workflow files created !!! . . . ##########"
+read -p "Press [Enter] key to continue..."

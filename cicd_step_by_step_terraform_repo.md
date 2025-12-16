@@ -29,14 +29,14 @@ If you’re new to GitHub Actions and Terraform, this guide explains each step a
 Fill these once and reuse in commands:
 
 ```bash
-OWNER="your-org-or-username"
+GH_OWNER="your-org-or-username"
 REPO="tf-s3-ci"
 AWS_ACCOUNT_ID="123456789012"
 AWS_REGION="us-west-2"
 
 # backend names (customize as needed)
-TF_BACKEND_BUCKET="${REPO}-tfstate-${AWS_ACCOUNT_ID}-${AWS_REGION}"
-TF_BACKEND_KEY="global/terraform.tfstate"
+TF_BACKEND_S3_BUCKET="${REPO}-tfstate-${AWS_ACCOUNT_ID}-${AWS_REGION}"
+TF_BACKEND_S3_KEY="global/terraform.tfstate"
 TF_BACKEND_DDB_TABLE="${REPO}-tf-locks"
 
 # derived names
@@ -50,8 +50,8 @@ ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/${ROLE_NAME}"
 ## 4) Create the repository and scaffold Terraform
 ### Option A — GitHub CLI
 ```bash
-gh repo create "$OWNER/$REPO" --private --description "Terraform + S3 backend + OIDC CI/CD" --confirm
-git clone "https://github.com/$OWNER/$REPO.git"
+gh repo create "$GH_OWNER/$REPO" --private --description "Terraform + S3 backend + OIDC CI/CD" --confirm
+git clone "https://github.com/$GH_OWNER/$REPO.git"
 cd "$REPO"
 
 mkdir -p .github/workflows modules/.keep
@@ -108,12 +108,12 @@ Run these with admin credentials. They create the S3 backend bucket, DynamoDB lo
 ```bash
 # 5.1 Create versioned, encrypted S3 bucket
 aws s3api create-bucket \
-  --bucket "$TF_BACKEND_BUCKET" \
+  --bucket "$TF_BACKEND_S3_BUCKET" \
   --region "$AWS_REGION" \
   --create-bucket-configuration LocationConstraint="$AWS_REGION"
-aws s3api put-bucket-versioning --bucket "$TF_BACKEND_BUCKET" --versioning-configuration Status=Enabled
-aws s3api put-bucket-encryption --bucket "$TF_BACKEND_BUCKET" --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
-aws s3api put-public-access-block --bucket "$TF_BACKEND_BUCKET" --public-access-block-configuration '{
+aws s3api put-bucket-versioning --bucket "$TF_BACKEND_S3_BUCKET" --versioning-configuration Status=Enabled
+aws s3api put-bucket-encryption --bucket "$TF_BACKEND_S3_BUCKET" --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+aws s3api put-public-access-block --bucket "$TF_BACKEND_S3_BUCKET" --public-access-block-configuration '{
   "BlockPublicAcls":true,"IgnorePublicAcls":true,"BlockPublicPolicy":true,"RestrictPublicBuckets":true
 }'
 
@@ -143,8 +143,8 @@ cat > trust-policy.json <<EOF
         "StringEquals": { "token.actions.githubusercontent.com:aud": "sts.amazonaws.com" },
         "StringLike": {
           "token.actions.githubusercontent.com:sub": [
-            "repo:${OWNER}/${REPO}:ref:refs/heads/*",
-            "repo:${OWNER}/${REPO}:ref:refs/pull/*"
+            "repo:${GH_OWNER}/${REPO}:ref:refs/heads/*",
+            "repo:${GH_OWNER}/${REPO}:ref:refs/pull/*"
           ]
         }
       }
@@ -166,8 +166,8 @@ cat > permissions-policy.json <<EOF
       "Effect": "Allow",
       "Action": ["s3:ListBucket","s3:GetObject","s3:PutObject","s3:DeleteObject"],
       "Resource": [
-        "arn:aws:s3:::${TF_BACKEND_BUCKET}",
-        "arn:aws:s3:::${TF_BACKEND_BUCKET}/*"
+        "arn:aws:s3:::${TF_BACKEND_S3_BUCKET}",
+        "arn:aws:s3:::${TF_BACKEND_S3_BUCKET}/*"
       ]
     },
     { "Sid": "DDBLocking",
@@ -193,8 +193,8 @@ aws iam put-role-policy \
 - Go to **Settings → Secrets and variables → Actions**.
 - **Repository Variables**:
   - `AWS_REGION` = your region (e.g., `us-west-2`)
-  - `TF_BACKEND_BUCKET` = your backend bucket
-  - `TF_BACKEND_KEY` = e.g., `global/terraform.tfstate`
+  - `TF_BACKEND_S3_BUCKET` = your backend bucket
+  - `TF_BACKEND_S3_KEY` = e.g., `global/terraform.tfstate`
   - `TF_BACKEND_DDB_TABLE` = your lock table
 - **Repository Secrets**:
   - `AWS_ROLE_ARN` = `arn:aws:iam::…:role/${ROLE_NAME}`
@@ -202,8 +202,8 @@ aws iam put-role-policy \
 ### GitHub CLI
 ```bash
 gh variable set AWS_REGION --body "$AWS_REGION"
-gh variable set TF_BACKEND_BUCKET --body "$TF_BACKEND_BUCKET"
-gh variable set TF_BACKEND_KEY --body "$TF_BACKEND_KEY"
+gh variable set TF_BACKEND_S3_BUCKET --body "$TF_BACKEND_S3_BUCKET"
+gh variable set TF_BACKEND_S3_KEY --body "$TF_BACKEND_S3_KEY"
 gh variable set TF_BACKEND_DDB_TABLE --body "$TF_BACKEND_DDB_TABLE"
 gh secret set AWS_ROLE_ARN --body "$ROLE_ARN"
 ```
@@ -233,8 +233,8 @@ concurrency:
 env:
   TF_IN_AUTOMATION: "true"
   AWS_REGION: ${{ vars.AWS_REGION }}
-  TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
-  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
+  TF_BACKEND_S3_BUCKET: ${{ vars.TF_BACKEND_S3_BUCKET }}
+  TF_BACKEND_S3_KEY: ${{ vars.TF_BACKEND_S3_KEY }}
   TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
   AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
@@ -259,8 +259,8 @@ jobs:
       - name: Terraform Init (S3 backend)
         run: |
           terraform init \
-            -backend-config="bucket=${TF_BACKEND_BUCKET}" \
-            -backend-config="key=${TF_BACKEND_KEY}" \
+            -backend-config="bucket=${TF_BACKEND_S3_BUCKET}" \
+            -backend-config="key=${TF_BACKEND_S3_KEY}" \
             -backend-config="region=${AWS_REGION}" \
             -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
 
@@ -315,8 +315,8 @@ concurrency:
 env:
   TF_IN_AUTOMATION: "true"
   AWS_REGION: ${{ vars.AWS_REGION }}
-  TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
-  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
+  TF_BACKEND_S3_BUCKET: ${{ vars.TF_BACKEND_S3_BUCKET }}
+  TF_BACKEND_S3_KEY: ${{ vars.TF_BACKEND_S3_KEY }}
   TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
   AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 
@@ -342,8 +342,8 @@ jobs:
       - name: Terraform Init (S3 backend)
         run: |
           terraform init \
-            -backend-config="bucket=${TF_BACKEND_BUCKET}" \
-            -backend-config="key=${TF_BACKEND_KEY}" \
+            -backend-config="bucket=${TF_BACKEND_S3_BUCKET}" \
+            -backend-config="key=${TF_BACKEND_S3_KEY}" \
             -backend-config="region=${AWS_REGION}" \
             -backend-config="dynamodb_table=${TF_BACKEND_DDB_TABLE}"
 
@@ -389,7 +389,7 @@ JSON
 
 gh api -X PUT \
   -H "Accept: application/vnd.github+json" \
-  "/repos/$OWNER/$REPO/branches/main/protection" \
+  "/repos/$GH_OWNER/$REPO/branches/main/protection" \
   --input protection.json
 ```
 
@@ -444,7 +444,7 @@ gh pr create -B main -H feature/my-change --fill
 ## 14) Troubleshooting
 - **`AccessDenied` on S3/DDB**: verify the IAM inline policy includes the bucket/table ARNs and the job assumed the right role.
 - **Backend init fails**: ensure bucket exists in the same region you pass to Terraform; check the DDB table name and region.
-- **OIDC trust mismatch**: confirm `Condition` in the trust policy matches your `OWNER/REPO` and ref patterns (heads/* and pull/*).
+- **OIDC trust mismatch**: confirm `Condition` in the trust policy matches your `GH_OWNER/REPO` and ref patterns (heads/* and pull/*).
 - **Status check not required**: make sure you added **`terraform-ci`** as a required check in branch protection.
 
 ---

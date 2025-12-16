@@ -55,7 +55,7 @@ GitHub’s model for this permission is a little counter-intuitive:
 ## Security implications
 
 - **Safer than static keys**: No long-lived AWS access keys stored in secrets. Tokens are minted per-job and expire quickly.
-- **Scoped to repo/branch**: Your IAM trust policy can say _only allow OIDC tokens from repo `OWNER/REPO` and branch `main` or PRs_.
+- **Scoped to repo/branch**: Your IAM trust policy can say _only allow OIDC tokens from repo `GH_OWNER/REPO` and branch `main` or PRs_.
 - **Short-lived**: If leaked, the token is useless after expiration (minutes).
 - **Auditable**: AWS CloudTrail logs the role assumption via OIDC.
 

@@ -1,14 +1,14 @@
 #!/bin/bash
 set -e
 
-. scripts/0-variables.sh
-TF_BACKEND_BUCKET="${TF_BACKEND_BUCKET,,}"
+
+TF_BACKEND_S3_BUCKET="${TF_BACKEND_S3_BUCKET,,}"
 
 echo "Deleting all objects from S3 bucket..."
-aws s3 rm "s3://$TF_BACKEND_BUCKET" --recursive > /dev/null || true
+aws s3 rm "s3://$TF_BACKEND_S3_BUCKET" --recursive > /dev/null || true
   
 echo "Deleting S3 bucket..."
-aws s3api delete-bucket --bucket "$TF_BACKEND_BUCKET" --region "$AWS_REGION" > /dev/null || true
+aws s3api delete-bucket --bucket "$TF_BACKEND_S3_BUCKET" --region "$AWS_REGION" > /dev/null || true
 
 echo "Deleting DynamoDB table..."
 aws dynamodb delete-table --table-name "$TF_BACKEND_DDB_TABLE" --region "$AWS_REGION" > /dev/null || true
@@ -23,4 +23,5 @@ echo "Deleting IAM role..."
 aws iam delete-role --role-name "$ROLE_NAME" > /dev/null || true
 
 
-echo "Cleanup complete."
+echo "########## Cleanup TF backend resources in AWS is complete !!! . . . ##########"
+read -p "Press [Enter] key to continue..."
