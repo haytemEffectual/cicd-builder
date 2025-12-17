@@ -128,9 +128,7 @@ You'll see an interactive menu with the following options:
 │   ├── 5-protect_main.sh              # Apply branch protection rules
 │   ├── build_tf_baseline.sh           # Create baseline Terraform files
 │   └── undo_bootstrap.sh              # Cleanup AWS resources
-├── README.md                          # This file
-├── GH_OIDC_integration.md             # Deep dive on OIDC integration
-└── cicd_step_by_step_terraform_repo.md # Step-by-step walkthrough
+└── README.md                          # This file
 ```
 
 ---
@@ -355,13 +353,6 @@ Tears down all AWS resources created in Step 2:
 - Verify S3 bucket exists and is in correct region
 - Confirm IAM role has permissions to bucket and DynamoDB table
 - Check backend configuration uses correct variable names (`TF_BACKEND_BUCKET` vs `TF_BACKEND_S3_BUCKET`)
-
----
-
-##  Additional Documentation
-
-- [GH_OIDC_integration.md](GH_OIDC_integration.md) - Deep dive into GitHub OIDC authentication with AWS
-- [cicd_step_by_step_terraform_repo.md](cicd_step_by_step_terraform_repo.md) - Manual step-by-step walkthrough
 
 ---
 
