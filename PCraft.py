@@ -17,7 +17,47 @@ import os
 import subprocess
 from pathlib import Path
 
-   
+ 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    
+# for name, value in vars(bcolors).items():
+#     if not name.startswith('_'):
+#         print(f"{name}: {value} ==> Sample Text{bcolors.ENDC}")
+
+def run_step_1(myrepo_path, gh_owner, repo):
+    print(f'{bcolors.OKBLUE}####### 1- Creating repo structure and remote repo {gh_owner}/{repo} #######{bcolors.ENDC}')
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/1-repo_structure.sh")], check=True)
+
+def run_step_2(myrepo_path):
+    print(f'{bcolors.OKBLUE}####### 2- Setting TF backend structure (S3 + DDB), IAM permissions, and OIDC role in AWS #######{bcolors.ENDC}')
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/2-bootstrap_tf_aws.sh")], check=True)
+
+def run_step_3(myrepo_path):
+    print(f'{bcolors.OKBLUE}####### 3- Configuring GitHub variables and secrets #######{bcolors.ENDC}')
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/3-set_gh_variables.sh")], check=True)
+
+def run_step_4(myrepo_path):
+    print(f'{bcolors.OKBLUE}####### 4- Creating cicd gh actions workflows #######{bcolors.ENDC}')
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/4-workflow_ci.sh")], check=True)
+
+def run_step_5(myrepo_path):
+    print(f'{bcolors.OKBLUE}####### 5- Configuring main branch protection rules #######{bcolors.ENDC}')
+    input(f"{bcolors.WARNING}This would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...{bcolors.ENDC}")
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/5-protect_main.sh")], check=True)
+
+def run_step_6(myrepo_path):
+    print(f'{bcolors.WARNING}####### Undoing step 2: destroying TF backend (S3 + DDB) and IAM role in AWS #######{bcolors.ENDC}')
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/undo_bootstrap.sh")], check=True)
+    
 def read_variables(file_path):
     """Read variables from a shell script file and return as dictionary"""
     try:
@@ -100,31 +140,30 @@ while True:
         print(selected_option + " . . . working on it!")
         match int(choice):
             case 1:
-                subprocess.run(["bash", os.path.join(myrepo_path, "scripts/1-repo_structure.sh")], check=True)
+                run_step_1(myrepo_path, GH_OWNER, REPO)
             case 2:
-                subprocess.run(["bash", os.path.join(myrepo_path, "scripts/2-bootstrap_tf_aws.sh")], check=True)
+                run_step_2(myrepo_path)
             case 3:
-                subprocess.run(["bash", os.path.join(myrepo_path, "scripts/3-set_gh_variables.sh")], check=True)
+                run_step_3(myrepo_path)
             case 4:
-                subprocess.run(["bash", os.path.join(myrepo_path, "scripts/4-workflow_ci.sh")], check=True)
+                run_step_4(myrepo_path)
             case 5:
-                print ("#########  Now, protecting main branch... #########")
-                input ("This would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...")
-                subprocess.run(["bash", os.path.join(myrepo_path, "scripts/5-protect_main.sh")], check=True)
+                run_step_5(myrepo_path)
             case 6:
-                subprocess.run(["bash", os.path.join(myrepo_path, "scripts/undo_bootstrap.sh")], check=True)
+                run_step_6(myrepo_path)
             case 7:
-                subprocess.run(["bash", os.path.join(myrepo_path, "scripts/1-repo_structure.sh")], check=True)
-                subprocess.run(["bash", os.path.join(myrepo_path, "scripts/2-bootstrap_tf_aws.sh")], check=True)
-                subprocess.run(["bash", os.path.join(myrepo_path, "scripts/3-set_gh_variables.sh")], check=True)
-                subprocess.run(["bash", os.path.join(myrepo_path, "scripts/4-workflow_ci.sh")], check=True)
-                print ("#########  Now, protecting main branch... #########")
-                input ("this would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...")
-                subprocess.run(["bash", os.path.join(myrepo_path, "scripts/5-protect_main.sh")], check=True)
-                print("####### DONE!!! . . . your repo is all set! #######")
+                print(f'{bcolors.OKGREEN}####### Performing all steps 1 to 5 #######{bcolors.ENDC}')
+                run_step_1(myrepo_path, GH_OWNER, REPO)
+                run_step_2(myrepo_path)
+                run_step_3(myrepo_path)
+                run_step_4(myrepo_path)
+                run_step_5(myrepo_path)
+                print(f"{bcolors.OKGREEN}####### DONE!!! . . . your repo is all set! #######{bcolors.ENDC}")
+                input(f"{bcolors.ENDC} press enter to continue. This would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...")
             case 8:
                 print("Exiting...")
                 break   
             
     else:
-        print("Invalid choice. Please run the script again and select a valid option.") 
+        print(f"{bcolors.FAIL}Invalid choice. Please run the script again and select a valid option.{bcolors.ENDC}") 
+        exit(0)
