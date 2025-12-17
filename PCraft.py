@@ -1,3 +1,17 @@
+###########################################################################################
+## start.py: Main script to setup GitHub repo with Terraform CI/CD using GitHub Actions  ##
+## Before running this script,                                                           ##
+##  1- Make sure to have AWS CLI and GitHub CLI installed                                ##
+##  2- Authenticate to AWS CLI and GitHub CLI                                            ##
+## This script reads variables from scripts/0-variables.sh or prompts user for input     ##
+## It then offers a menu to perform various setup steps including:                       ##
+##       1- Creating repo structure and remote repo                                      ##
+##       2- Setting up TF backend in AWS (S3 + DDB) and IAM roles                        ##
+##       3- Configuring GitHub repo variables and secrets                                ##
+##       4- Creating GitHub Actions workflows for CI/CD                                  ##
+##       5- Applying branch protection rules to main branch                              ##
+########################################################################################### 
+
 import re
 import os   
 import subprocess
