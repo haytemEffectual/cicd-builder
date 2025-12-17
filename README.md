@@ -370,8 +370,3 @@ Contributions welcome! Please:
 
 This project is provided as-is for educational and automation purposes.
 
----
-
-##  Support
-
-For issues, questions, or contributions, please open an issue on GitHub.
