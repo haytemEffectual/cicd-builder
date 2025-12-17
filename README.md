@@ -15,20 +15,20 @@ PipeCrafter is a Python-based automation tool that scaffolds complete **Terrafor
 
 ---
 
-## ✨ Features
+##  Features
 
-- 🔐 **Secure OIDC Authentication** - No static AWS keys, uses GitHub OIDC for temporary credentials
-- 🏗️ **Complete Infrastructure Setup** - Automated S3 bucket, DynamoDB table, and IAM role creation
-- 🚀 **Production-Ready Workflows** - Pre-configured GitHub Actions for Terraform CI/CD
-- 🎯 **Interactive Menu Interface** - User-friendly Python orchestrator for all setup steps
-- 🔒 **Branch Protection** - Automated protection rules for main branch
-- 📦 **Terraform Best Practices** - Remote state, state locking, and version constraints
-- 🛡️ **Security Scanning** - Integrated Trivy vulnerability scanner for IaC
-- 🔄 **Easy Cleanup** - One-command teardown of all AWS resources
+-  **Secure OIDC Authentication** - No static AWS keys, uses GitHub OIDC for temporary credentials
+-  **Complete Infrastructure Setup** - Automated S3 bucket, DynamoDB table, and IAM role creation
+-  **Production-Ready Workflows** - Pre-configured GitHub Actions for Terraform CI/CD
+-  **Interactive Menu Interface** - User-friendly Python orchestrator for all setup steps
+-  **Branch Protection** - Automated protection rules for main branch
+-  **Terraform Best Practices** - Remote state, state locking, and version constraints
+-  **Security Scanning** - Integrated Trivy vulnerability scanner for IaC
+-  **Easy Cleanup** - One-command teardown of all AWS resources
 
 ---
 
-## 🎯 What Gets Created
+##  What Gets Created
 
 ### AWS Infrastructure
 - **S3 Bucket** for Terraform remote state (with versioning, encryption, and public access blocked)
@@ -46,7 +46,7 @@ PipeCrafter is a Python-based automation tool that scaffolds complete **Terrafor
 
 ---
 
-## 📋 Prerequisites
+##  Prerequisites
 
 ### Required Tools
 - **Python 3.x** (with `subprocess`, `os`, `re` modules)
@@ -69,7 +69,7 @@ Your AWS user/role must have permissions to create:
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 1. Configure Variables
 
@@ -114,7 +114,7 @@ You'll see an interactive menu with the following options:
 
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```
 .
@@ -135,7 +135,7 @@ You'll see an interactive menu with the following options:
 
 ---
 
-## 🔧 Detailed Workflow Steps
+##  Detailed Workflow Steps
 
 ### Step 1: Building Repo Structure
 
@@ -305,7 +305,7 @@ Tears down all AWS resources created in Step 2:
 
 ---
 
-## 🔐 Security Best Practices
+##  Security Best Practices
 
 ### OIDC Authentication Benefits
 - **No Long-Lived Credentials**: GitHub Actions receives temporary credentials valid for workflow duration only
@@ -326,7 +326,7 @@ Tears down all AWS resources created in Step 2:
 
 ---
 
-## 🐛 Troubleshooting
+##  Troubleshooting
 
 ### Common Issues
 
@@ -358,14 +358,14 @@ Tears down all AWS resources created in Step 2:
 
 ---
 
-## 📚 Additional Documentation
+##  Additional Documentation
 
 - [GH_OIDC_integration.md](GH_OIDC_integration.md) - Deep dive into GitHub OIDC authentication with AWS
 - [cicd_step_by_step_terraform_repo.md](cicd_step_by_step_terraform_repo.md) - Manual step-by-step walkthrough
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions welcome! Please:
 1. Fork the repository
@@ -375,12 +375,12 @@ Contributions welcome! Please:
 
 ---
 
-## 📝 License
+##  License
 
 This project is provided as-is for educational and automation purposes.
 
 ---
 
-## 🙋 Support
+##  Support
 
 For issues, questions, or contributions, please open an issue on GitHub.
