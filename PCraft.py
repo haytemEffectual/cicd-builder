@@ -85,10 +85,15 @@ print("Select an option:")
 while True:
     os.system("clear") 
     os.chdir(subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip())
-    print("#######################################################################")
+    
+    # Display menu as a table
+    print("┌────┬────────────────────────────────────────────────────────────────────────────────────┐")
+    print("│ #  │ Configuration Step                                                                 │")
+    print("├────┼────────────────────────────────────────────────────────────────────────────────────┤")
     for i, option in enumerate(options, 1):
-        print(f"{i}. {option}")
-    print("#######################################################################")
+        print(f"│ {i}  │ {option:<80}   │")
+    print("└────┴────────────────────────────────────────────────────────────────────────────────────┘")
+    
     choice= input("Enter the configuration step number you want to apply: ")
     if choice.isdigit() and 1 <= int(choice) <= len(options):
         selected_option = options[int(choice) - 1]
