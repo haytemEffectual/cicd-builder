@@ -31,8 +31,8 @@ AWS_ACCOUNT_ID = shell_vars.get('AWS_ACCOUNT_ID', '') or input("what is the AWS 
 AWS_REGION = shell_vars.get('AWS_REGION', '') or input("what is the AWS Region? ")
 TF_BACKEND_S3_KEY = shell_vars.get('TF_BACKEND_S3_KEY', '') or input("what is the TF Backend S3 Key? ")
 # VPC_CIDR = shell_vars.get('VPC_CIDR', '') or input("what is the VPC CIDR? ")   # TODO: uncomment and prompt for VPC_CIDR if the VPC is needed to be created via TF
-TF_BACKEND_S3_BUCKET = f"{REPO}-tfstate-{AWS_ACCOUNT_ID}-{AWS_REGION}"
-TF_BACKEND_DDB_TABLE = f"{REPO}-tf-locks"
+TF_BACKEND_S3_BUCKET = f"{REPO}-tfstate-{AWS_ACCOUNT_ID}-{AWS_REGION}".lower()
+TF_BACKEND_DDB_TABLE = f"{REPO}-tf-locks".lower()
 OIDC_PROVIDER_ARN= f"arn:aws:iam::{AWS_ACCOUNT_ID}:oidc-provider/token.actions.githubusercontent.com"
 ROLE_NAME= f"{REPO}-gha-oidc-role"
 ROLE_ARN= f"arn:aws:iam::{AWS_ACCOUNT_ID}:role/{ROLE_NAME}"
@@ -89,7 +89,8 @@ while True:
             case 4:
                 subprocess.run(["bash", os.path.join(myrepo_path, "scripts/4-workflow_ci.sh")], check=True)
             case 5:
-                input("this would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...")
+                print ("#########  Now, protecting main branch... #########")
+                input ("This would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...")
                 subprocess.run(["bash", os.path.join(myrepo_path, "scripts/5-protect_main.sh")], check=True)
             case 6:
                 subprocess.run(["bash", os.path.join(myrepo_path, "scripts/undo_bootstrap.sh")], check=True)
@@ -98,7 +99,8 @@ while True:
                 subprocess.run(["bash", os.path.join(myrepo_path, "scripts/2-bootstrap_tf_aws.sh")], check=True)
                 subprocess.run(["bash", os.path.join(myrepo_path, "scripts/3-set_gh_variables.sh")], check=True)
                 subprocess.run(["bash", os.path.join(myrepo_path, "scripts/4-workflow_ci.sh")], check=True)
-                input("this would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...")
+                print ("#########  Now, protecting main branch... #########")
+                input ("this would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...")
                 subprocess.run(["bash", os.path.join(myrepo_path, "scripts/5-protect_main.sh")], check=True)
                 print("####### DONE!!! . . . your repo is all set! #######")
             case 8:

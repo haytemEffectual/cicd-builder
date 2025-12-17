@@ -8,7 +8,9 @@
 ##       4- Push it to remote                                                         ##           
 ########################################################################################
 set -e 
-echo "## 1- Putting on initial repo folder structure and creating a remote repo ######"
+echo "###################################################################################"
+echo "##### 1- Putting on initial repo folder structure and creating a remote repo ######"
+echo "###################################################################################"
 echo ">>>>>..... Creating remote repo !!!"
 echo "Repository Name: $GH_OWNER/$REPO"
 echo "Debug: GH_OWNER='$GH_OWNER' REPO='$REPO'"

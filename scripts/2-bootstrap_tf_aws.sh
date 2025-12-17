@@ -16,7 +16,9 @@ if ! gh repo view "$GH_OWNER/$REPO" &>/dev/null; then
     exit 0
 fi
 TF_BACKEND_S3_BUCKET="${TF_BACKEND_S3_BUCKET,,}"
-echo "## 2- TF bootstrapping: Creating S3 bucket && DynamoDB table ##"
+echo "┌───────────────────────────────────────────────────────────────┐"
+echo "│  2. TF bootstrapping: Creating S3 bucket && DynamoDB table    │"
+echo "└───────────────────────────────────────────────────────────────┘"
 echo ">>>>>..... Creating S3 bucket (if not exists)..."
 aws s3api create-bucket \
   --bucket "$TF_BACKEND_S3_BUCKET" \
@@ -140,5 +142,5 @@ aws iam put-role-policy \
 echo "cleaning up the temporary permisson and trust policy files..."
 rm -f trust-policy.json permissions-policy.json
 
-echo ">>>>>>>>>> Bootstrap complete !!! . . . >>>>>>>>>>"
+echo ">>>>>>>>>> Bootstrap complete !!! . . . "
 read -p "Press [Enter] key to continue..."

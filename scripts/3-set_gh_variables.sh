@@ -16,8 +16,9 @@ for var in "${required_vars[@]}"; do
         exit 1
     fi
 done
-
-echo "## 3- Setting GitHub repo variables and secrets ##"
+echo "┌────────────────────────────────────────────────────────┐"
+echo "│  3. Setting GitHub repo variables and secrets          │"
+echo "└────────────────────────────────────────────────────────┘"
 
 cd "$REPO"
 git checkout main

@@ -51,5 +51,7 @@ cat > main.tf <<'TF'
 #   }
 # }
 TF
+
+find . -type f -name ".keep" -delete
 echo ">>>>>> ..... Terraform basic folder structure created."
 read -p "Press [Enter] key to continue..."

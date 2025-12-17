@@ -8,8 +8,10 @@ if ! gh repo view "$GH_OWNER/$REPO" &>/dev/null; then
     exit 0
 fi
 cd "$REPO"
-echo "##..... 4-Creating GitHub Actions workflow files..."
-echo "#####  - .github/workflows/terraform-ci.yml"
+echo "┌────────────────────────────────────────────────────────┐"
+echo "│  4. Creating GitHub Actions workflow files...          │"
+echo "└────────────────────────────────────────────────────────┘"
+echo ">>>>>  - .github/workflows/terraform-ci.yml"
 cat > .github/workflows/terraform-ci.yml <<'CI'
 name: terraform-ci
 on:
@@ -30,8 +32,8 @@ concurrency:
 env:
   TF_IN_AUTOMATION: "true"
   AWS_REGION: ${{ vars.AWS_REGION }}
-  TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
-  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_KEY }}
+  TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_S3_BUCKET }}
+  TF_BACKEND_KEY: ${{ vars.TF_BACKEND_S3_KEY }}
   TF_BACKEND_DDB_TABLE: ${{ vars.TF_BACKEND_DDB_TABLE }}
   AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
   # TF_VAR_vpc_cidr: ${{ vars.VPC_CIDR }} # TODO: uncomment and set VPC_CIDR if the VPC is needed to be created via TF

@@ -19,9 +19,11 @@ if ! gh repo view "$GH_OWNER/$REPO" &>/dev/null; then
     read -p "Press [Enter] key to continue..."
     exit 0
 fi
-echo "## .... 5- Applying GH branch protection rules to main branch..."
+echo "┌───────────────────────────────────────────────────────────────┐"
+echo "│  5. Applying GH branch protection rules to main branch        │"
+echo "└───────────────────────────────────────────────────────────────┘"
 
-echo "changing dir to "/$REPO""
+echo "changing dir to /$REPO"
 cd "$REPO"
 echo ">>>>>..... pushing final change to the remote repo"
 git pull origin main
