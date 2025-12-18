@@ -97,5 +97,5 @@ CI
 
 
 cd ..
-echo "########## GitHub Actions workflow files created !!! . . . ##########"
-read -p "Press [Enter] key to continue..."
+# echo "########## GitHub Actions workflow files created !!! . . . ##########"
+# read -p "Press [Enter] key to continue..."

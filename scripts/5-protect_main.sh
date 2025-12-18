@@ -65,8 +65,8 @@ gh api -X PUT \
 rm protection.json
 echo "Branch protection rules applied to main branch."
 cd ..
-echo "########## Branch protection applied !!! . . . ##########"
-read -p "Press [Enter] key to continue..."
+# echo "########## Branch protection applied !!! . . . ##########"
+# read -p "Press [Enter] key to continue..."
 
 
 

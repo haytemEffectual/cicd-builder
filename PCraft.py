@@ -36,27 +36,39 @@ class bcolors:
 def run_step_1(myrepo_path, gh_owner, repo):
     print(f'{bcolors.OKBLUE}####### 1- Creating repo structure and remote repo {gh_owner}/{repo} #######{bcolors.ENDC}')
     subprocess.run(["bash", os.path.join(myrepo_path, "scripts/1-repo_structure.sh")], check=True)
+    print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... Repo structure created locally and has been pushed to remote repo.{bcolors.ENDC}')
+    input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_2(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 2- Setting TF backend structure (S3 + DDB), IAM permissions, and OIDC role in AWS #######{bcolors.ENDC}')
     subprocess.run(["bash", os.path.join(myrepo_path, "scripts/2-bootstrap_tf_aws.sh")], check=True)
+    print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... TF backend structure and IAM roles created in AWS.{bcolors.ENDC}')
+    input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_3(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 3- Configuring GitHub variables and secrets #######{bcolors.ENDC}')
     subprocess.run(["bash", os.path.join(myrepo_path, "scripts/3-set_gh_variables.sh")], check=True)
+    print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... GitHub variables and secrets configured.{bcolors.ENDC}')
+    input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_4(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 4- Creating cicd gh actions workflows #######{bcolors.ENDC}')
     subprocess.run(["bash", os.path.join(myrepo_path, "scripts/4-workflow_ci.sh")], check=True)
+    print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... GitHub Actions workflows created and pushed to remote repo.{bcolors.ENDC}')
+    input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_5(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 5- Configuring main branch protection rules #######{bcolors.ENDC}')
     input(f"{bcolors.WARNING}This would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...{bcolors.ENDC}")
     subprocess.run(["bash", os.path.join(myrepo_path, "scripts/5-protect_main.sh")], check=True)
+    print (f"{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... Main branch protection rules configured.{bcolors.ENDC}")
+    input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_6(myrepo_path):
     print(f'{bcolors.WARNING}####### Undoing step 2: destroying TF backend (S3 + DDB) and IAM role in AWS #######{bcolors.ENDC}')
     subprocess.run(["bash", os.path.join(myrepo_path, "scripts/undo_bootstrap.sh")], check=True)
+    print (f"{bcolors.OKGREEN}########## this step is COMPLETE!!! 👍 ... Cleanup TF backend resources in AWS is complete !!! . . . ##########{bcolors.ENDC}")
+    input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
     
 def read_variables(file_path):
     """Read variables from a shell script file and return as dictionary"""
@@ -159,7 +171,6 @@ while True:
                 run_step_4(myrepo_path)
                 run_step_5(myrepo_path)
                 print(f"{bcolors.OKGREEN}####### DONE!!! . . . your repo is all set! #######{bcolors.ENDC}")
-                input(f"{bcolors.ENDC} press enter to continue. This would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...")
             case 8:
                 print("Exiting...")
                 break   

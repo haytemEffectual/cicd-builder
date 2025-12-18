@@ -56,6 +56,6 @@ if [[ "$confirm_push" == "y" || "$confirm_push" == "Y" ]]; then
 else
     echo "Push to remote repo skipped."
 fi      
-echo ">>>>>..... Repo structure created and pushed to remote repo !!!"
-read -p "Press [Enter] key to continue..."
+# echo ">>>>>..... Repo structure created and pushed to remote repo !!!"
+# read -p "Press [Enter] key to continue..."
 

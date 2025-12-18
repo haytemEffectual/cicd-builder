@@ -22,6 +22,3 @@ aws iam delete-role-policy --role-name "$ROLE_NAME" --policy-name "${REPO}-inlin
 echo "Deleting IAM role..."
 aws iam delete-role --role-name "$ROLE_NAME" > /dev/null || true
 
-
-echo "########## Cleanup TF backend resources in AWS is complete !!! . . . ##########"
-read -p "Press [Enter] key to continue..."

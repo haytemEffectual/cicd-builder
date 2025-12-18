@@ -142,5 +142,4 @@ aws iam put-role-policy \
 echo "cleaning up the temporary permisson and trust policy files..."
 rm -f trust-policy.json permissions-policy.json
 
-echo ">>>>>>>>>> Bootstrap complete !!! . . . "
-read -p "Press [Enter] key to continue..."
+# echo ">>>>>>>>>> Bootstrap complete !!! . . . "
