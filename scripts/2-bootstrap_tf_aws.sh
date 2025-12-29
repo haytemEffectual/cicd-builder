@@ -57,10 +57,10 @@ export OIDC_PROVIDER_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:oidc-provider/token.act
 
 # Verify it exists
 if ! aws iam get-open-id-connect-provider --open-id-connect-provider-arn "$OIDC_PROVIDER_ARN" > /dev/null 2>&1; then
-  echo "ERROR: OIDC provider not found. ARN: $OIDC_PROVIDER_ARN"
+  echo -e "ERROR: OIDC provider not found. ARN: \033[1;31m$OIDC_PROVIDER_ARN\033[0m"
   exit 1
 fi
-echo "OIDC Provider verified: $OIDC_PROVIDER_ARN"
+echo -e "OIDC Provider verified: \033[1;33m$OIDC_PROVIDER_ARN\033[0m"
 
 echo "##..... Creating IAM role assumed by GitHub Actions via OIDC..."
 # under this line comment should be placed under the line "StringLike" in below policy doc 
@@ -98,7 +98,7 @@ aws iam create-role \
 
 # Export the role ARN
 export ROLE_ARN="arn:aws:iam::${AWS_ACCOUNT_ID}:role/${ROLE_NAME}"
-echo "IAM Role ARN: $ROLE_ARN"
+echo -e "IAM Role ARN: \033[1;33m$ROLE_ARN\033[0m"
 
 echo "     ..... Attaching minimal permissions for Terraform state + infra..."
 cat > permissions-policy.json <<EOF
