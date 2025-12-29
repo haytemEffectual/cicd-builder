@@ -98,7 +98,7 @@ export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 > **Note**: Replace the token value with your actual GitHub personal access token. Ensure it has `repo` and `workflow` scopes.
 
-### 4. Configure Variables
+### Step 4: Configure Variables
 if you want to pre-polulate the variable in one place [scripts/0-variables.sh] before run the code, otherwise the script will ask for any undefined variable in [0-variables.sh] file.
 Edit [scripts/0-variables.sh](scripts/0-variables.sh) with your specific values:
 
