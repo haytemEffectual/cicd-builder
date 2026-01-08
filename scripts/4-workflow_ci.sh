@@ -55,6 +55,9 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
+          
+      - name: Terraform Validate (pre-init)
+        run: terraform validate
 
       - name: Terraform Init (S3 backend)
         run: |
