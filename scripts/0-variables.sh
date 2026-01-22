@@ -1,8 +1,8 @@
 #!/bin/bash
 # ---- fill these in ----
 GH_OWNER="haytemEffectual"
-REPO="MyTerraformProject-test"
-AWS_ACCOUNT_ID="478530404284"
+REPO="tf-aws-<projectname>-<clientname>"
+AWS_ACCOUNT_ID="000000000000"
 AWS_REGION="us-west-2"
 # VPC_CIDR="10.0.0.0/24"  # TODO: set VPC_CIDR if the VPC is needed to be created via TF
 #
