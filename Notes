@@ -1,0 +1,2 @@
+1. Backend names and derived names needed to be uncommented.
+2. Location constraint fails if bucket is in us-east-1 region. (I needed to comment out that line.)

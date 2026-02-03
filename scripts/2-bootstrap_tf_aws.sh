@@ -23,7 +23,7 @@ echo ">>>>>..... Creating S3 bucket (if not exists)..."
 aws s3api create-bucket \
   --bucket "$TF_BACKEND_S3_BUCKET" \
   --region "$AWS_REGION" \
-  --create-bucket-configuration LocationConstraint="$AWS_REGION" \
+  # --create-bucket-configuration LocationConstraint="$AWS_REGION" \
   > /dev/null || true # Ignore error if bucket already exists and /dev/null to suppress output
 
 echo ">>>>>..... Configuring S3 bucket settings..."
