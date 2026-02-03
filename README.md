@@ -73,13 +73,9 @@ These permissions are needed only if your AWS user/role requires additional acce
 ---
 ##  Quick Start
 
-<div style="color: #FFD700;">
-<strong>Before getting started:</strong>
-<ul>
-<li>Authenticate programmatically to the AWS account you are configuring the pipeline for, using <code>aws configure</code> or by exporting the credentials as environment variables.</li>
-<li>If you haven't already, authenticate to the target GitHub repository (probably the customer GH account).</li>
-</ul>
-</div>
+> ### ⚠️ **Before getting started:**
+> - Authenticate programmatically to the AWS account you are configuring the pipeline for, using `aws configure` or by exporting the credentials as environment variables.
+> - If you haven't already, authenticate to the target GitHub repository (probably the customer GH account).
 
 ### Step 1: Install Docker
 
