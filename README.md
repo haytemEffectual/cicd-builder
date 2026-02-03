@@ -70,11 +70,15 @@ Your AWS user/role must have permissions to create:
 ---
 
 ##  Quick Start
-```ansi
-[93mBefore getting started:[0m
-[93m- Authenticate programmatically to the AWS account you are configuring the pipeline for, using `aws configure` or by exporting the credentials as environment variables.[0m
-[93m- If you haven't already, authenticate to the target GitHub repository (probably the customer GH account).[0m
-```
+
+<div style="color: #FFD700;">
+<strong>Before getting started:</strong>
+<ul>
+<li>Authenticate programmatically to the AWS account you are configuring the pipeline for, using <code>aws configure</code> or by exporting the credentials as environment variables.</li>
+<li>If you haven't already, authenticate to the target GitHub repository (probably the customer GH account).</li>
+</ul>
+</div>
+
 ### 1. Configure Variables
 
 Edit [scripts/0-variables.sh](scripts/0-variables.sh) with your specific values:

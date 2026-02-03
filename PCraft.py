@@ -17,7 +17,6 @@ import os
 import subprocess
 from pathlib import Path
 
-
  
 class bcolors:
     HEADER = '\033[95m'
@@ -34,88 +33,40 @@ class bcolors:
 #     if not name.startswith('_'):
 #         print(f"{name}: {value} ==> Sample Text{bcolors.ENDC}")
 
-def convert_to_wsl_path(windows_path):
-    """Convert Windows path to WSL path format"""
-    if os.name != 'nt':
-        return windows_path
-    # Replace backslashes with forward slashes
-    path = windows_path.replace("\\", "/")
-    # Convert C:/path to /mnt/c/path
-    if len(path) > 2 and path[1] == ':':
-        drive = path[0].lower()
-        path = f"/mnt/{drive}{path[2:]}"
-    return path
-
 def run_step_1(myrepo_path, gh_owner, repo):
     print(f'{bcolors.OKBLUE}####### 1- Creating repo structure and remote repo {gh_owner}/{repo} #######{bcolors.ENDC}')
-    script_path = os.path.join(myrepo_path, "scripts/1-repo_structure.sh")
-    if os.name == 'nt':
-        script_path = convert_to_wsl_path(script_path)
-        cmd = ["wsl", "bash", script_path]
-    else:
-        cmd = ["bash", script_path]
-    subprocess.run(cmd, check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/1-repo_structure.sh")], check=True)
     print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... Repo structure created locally and has been pushed to remote repo.{bcolors.ENDC}')
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_2(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 2- Setting TF backend structure (S3 + DDB), IAM permissions, and OIDC role in AWS #######{bcolors.ENDC}')
-    script_path = os.path.join(myrepo_path, "scripts/2-bootstrap_tf_aws.sh")
-    if os.name == 'nt':
-        script_path = convert_to_wsl_path(script_path)
-        cmd = ["wsl", "bash", script_path]
-    else:
-        cmd = ["bash", script_path]
-    subprocess.run(cmd, check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/2-bootstrap_tf_aws.sh")], check=True)
     print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... TF backend structure and IAM roles created in AWS.{bcolors.ENDC}')
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_3(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 3- Configuring GitHub variables and secrets #######{bcolors.ENDC}')
-    script_path = os.path.join(myrepo_path, "scripts/3-set_gh_variables.sh")
-    if os.name == 'nt':
-        script_path = convert_to_wsl_path(script_path)
-        cmd = ["wsl", "bash", script_path]
-    else:
-        cmd = ["bash", script_path]
-    subprocess.run(cmd, check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/3-set_gh_variables.sh")], check=True)
     print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... GitHub variables and secrets configured.{bcolors.ENDC}')
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_4(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 4- Creating cicd gh actions workflows #######{bcolors.ENDC}')
-    script_path = os.path.join(myrepo_path, "scripts/4-workflow_ci.sh")
-    if os.name == 'nt':
-        script_path = convert_to_wsl_path(script_path)
-        cmd = ["wsl", "bash", script_path]
-    else:
-        cmd = ["bash", script_path]
-    subprocess.run(cmd, check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/4-workflow_ci.sh")], check=True)
     print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... GitHub Actions workflows created and pushed to remote repo.{bcolors.ENDC}')
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_5(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 5- Configuring main branch protection rules #######{bcolors.ENDC}')
     input(f"{bcolors.WARNING}This would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...{bcolors.ENDC}")
-    script_path = os.path.join(myrepo_path, "scripts/5-protect_main.sh")
-    if os.name == 'nt':
-        script_path = convert_to_wsl_path(script_path)
-        cmd = ["wsl", "bash", script_path]
-    else:
-        cmd = ["bash", script_path]
-    subprocess.run(cmd, check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/5-protect_main.sh")], check=True)
     print (f"{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... Main branch protection rules configured.{bcolors.ENDC}")
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_6(myrepo_path):
     print(f'{bcolors.WARNING}####### Undoing step 2: destroying TF backend (S3 + DDB) and IAM role in AWS #######{bcolors.ENDC}')
-    script_path = os.path.join(myrepo_path, "scripts/undo_bootstrap.sh")
-    if os.name == 'nt':
-        script_path = convert_to_wsl_path(script_path)
-        cmd = ["wsl", "bash", script_path]
-    else:
-        cmd = ["bash", script_path]
-    subprocess.run(cmd, check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/undo_bootstrap.sh")], check=True)
     print (f"{bcolors.OKGREEN}########## this step is COMPLETE!!! 👍 ... Cleanup TF backend resources in AWS is complete !!! . . . ##########{bcolors.ENDC}")
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
     
@@ -184,13 +135,8 @@ options = ["Building basic repo structure",
 print("Select an option:")
 
 while True:
-    os.system("cls" if os.name == "nt" else "clear") 
-    try:
-        repo_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True, stderr=subprocess.DEVNULL).strip()
-        os.chdir(repo_root)
-    except subprocess.CalledProcessError:
-        # If git command fails, stay in current directory
-        pass
+    os.system("clear") 
+    os.chdir(subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip())
     
     # Display menu as a table
     print("┌────┬────────────────────────────────────────────────────────────────────────────────────┐")
