@@ -47,16 +47,19 @@ PipeCrafter is a Python-based automation tool that scaffolds complete **Terrafor
 ---
 
 ##  Prerequisites
+### Using Dev Container
+- Only **Docker** needs to be installed on your local machine—the dev container comes pre-configured with all required tools.
 
-### Required Tools
+### Required Tools (Without Dev Container)
+If not using the dev container, you'll need to manually install the following tools:
 - **Python 3.x** (with `subprocess`, `os`, `re` modules)
 - **AWS CLI** configured with credentials for target account
 - **GitHub CLI (`gh`)** authenticated to your GitHub account
 - **Git** for repository operations
 - **Bash shell** for script execution
 
-### AWS Permissions Required
-Your AWS user/role must have permissions to create:
+### AWS Permissions Required (Optional)
+These permissions are needed only if your AWS user/role requires additional access beyond what's created automatically. The setup process will automatically create an IAM user/role with permissions to:
 - S3 buckets and configure bucket settings
 - DynamoDB tables
 - IAM OIDC providers
@@ -68,7 +71,6 @@ Your AWS user/role must have permissions to create:
 - Ability to configure branch protection rules (optional)
 
 ---
-
 ##  Quick Start
 
 <div style="color: #FFD700;">
@@ -79,8 +81,32 @@ Your AWS user/role must have permissions to create:
 </ul>
 </div>
 
-### 1. Configure Variables
+### Step 1: Install Docker
 
+If not already installed on your local machine, download and install Docker from [docker.com](https://www.docker.com/).
+
+### Step 2: Configure AWS Credentials
+
+Authenticate with your target AWS account:
+
+```bash
+aws configure
+```
+
+Follow the prompts to enter your AWS Access Key ID, Secret Access Key, region, and output format.
+
+### Step 3: Authenticate with GitHub
+
+Create a GitHub personal access token and export it:
+
+```bash
+export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+> **Note**: Replace the token value with your actual GitHub personal access token. Ensure it has `repo` and `workflow` scopes.
+
+### Step 4: Configure Variables
+if you want to pre-polulate the variable in one place [scripts/0-variables.sh] before run the code, otherwise the script will ask for any undefined variable in [0-variables.sh] file.
 Edit [scripts/0-variables.sh](scripts/0-variables.sh) with your specific values:
 
 ```bash
@@ -93,34 +119,38 @@ TF_BACKEND_S3_KEY="global/terraform.tfstate"  # S3 key for state file
 
 > **Note**: S3 bucket name and DynamoDB table name are automatically generated based on your REPO, AWS_ACCOUNT_ID, and AWS_REGION values to ensure uniqueness.
 
-### 2. Run PipeCrafter
+### Step 5: Run PipeCrafter
 
-Execute the main Python orchestrator:
+Execute the main orchestrator script:
 
 ```bash
 python3 PCraft.py
 ```
 
-You'll see an interactive menu with the following options:
+You'll see an interactive menu with configuration options:
 
+```bash
+┌────┬────────────────────────────────────────────────────────────────────────────────────┐
+│ #  │ Configuration Step                                                                 │
+├────┼────────────────────────────────────────────────────────────────────────────────────┤
+│ 1  │ Building basic repo structure                                                      │
+│ 2  │ Setting TF backend structure (S3 + DDB), IAM permissions, and OIDC role in AWS     │
+│ 3  │ Configuring GitHub variables and secrets                                           │
+│ 4  │ Creating cicd gh actions workflows                                                 │
+│ 5  │ Configuring main branch protection rules                                           │
+│ 6  │ Undo step 2, and destroy TF backend (S3 + DDB) and IAM role in AWS                 │
+│ 7  │ All of the above                                                                   │
+│ 8  │ Exit                                                                               │
+└────┴────────────────────────────────────────────────────────────────────────────────────┘
+Enter the configuration step number you want to apply: 
 ```
-1. Building basic repo structure
-2. Setting TF backend structure (S3 + DDB), IAM permissions, and OIDC role in AWS
-3. Configuring GitHub variables and secrets
-4. Creating cicd gh actions workflows
-5. Configuring main branch protection rules
-6. Undo step 2, and destroy TF backend (S3 + DDB) and IAM role in AWS
-7. All of the above
-8. Exit
-```
 
-### 3. Choose Setup Option
+### Choose Setup Option
 
-- **Option 7 (Recommended)**: Run complete automated setup end-to-end
-- **Individual Options**: Execute specific steps if you need granular control
-- **Option 6**: Cleanup/teardown all AWS resources created in step 2
+- **Option 7 (Recommended)**: Execute all steps 1–5 automatically for complete end-to-end setup
+- **Individual Options**: Run steps 1–6 separately if you want granular control or need to troubleshoot
+- **Option 6**: Undo all AWS resources created in step 2 (useful for cleanup or starting over) 
 
----
 
 ##  Project Structure
 
@@ -373,12 +403,4 @@ Contributions welcome! Please:
 4. Submit a pull request 
 
 ---
-
-##  License
-
-This project is provided as-is for educational and automation purposes.
-
-
-
-
 
