@@ -72,7 +72,7 @@ Your AWS user/role must have permissions to create:
 ##  Quick Start
 
 Before getting start:
-- Authenticate programmatically to the AWS account you are configuring the pipeline for, using aws login or by exporting the credentials as environment variables.
+- Authenticate programmatically to the AWS account you are configuring the pipeline for, using `aws login` or by exporting the credentials as environment variables.
 - If you haven’t already, authenticate to the GitHub repository.
   
 ### 1. Configure Variables
@@ -373,5 +373,6 @@ Contributions welcome! Please:
 ##  License
 
 This project is provided as-is for educational and automation purposes.
+
 
 
