@@ -26,7 +26,7 @@ if gh repo view "$GH_OWNER/$REPO" &>/dev/null; then
     exit 0
 fi
 gh repo create "$GH_OWNER/$REPO" --private --description "Terraform Repo"
-echo ">>>>>..... Cloaning the repo!!!"
+echo ">>>>>..... Cloning the repo!!!"
 echo " cloning https://github.com/$GH_OWNER/$REPO.git"
 git clone "https://github.com/$GH_OWNER/$REPO.git"
 echo "changing dir to /$REPO"

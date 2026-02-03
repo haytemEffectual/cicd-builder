@@ -71,8 +71,15 @@ These permissions are needed only if your AWS user/role requires additional acce
 - Ability to configure branch protection rules (optional)
 
 ---
-
 ##  Quick Start
+
+<div style="color: #FFD700;">
+<strong>Before getting started:</strong>
+<ul>
+<li>Authenticate programmatically to the AWS account you are configuring the pipeline for, using <code>aws configure</code> or by exporting the credentials as environment variables.</li>
+<li>If you haven't already, authenticate to the target GitHub repository (probably the customer GH account).</li>
+</ul>
+</div>
 
 ### Step 1: Install Docker
 
@@ -400,4 +407,6 @@ Contributions welcome! Please:
 ##  License
 
 This project is provided as-is for educational and automation purposes.
+
+
 
