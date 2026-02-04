@@ -22,13 +22,20 @@ fi
 # Check if repository already exists
 if gh repo view "$GH_OWNER/$REPO" &>/dev/null; then
     echo "⚠️  Repository $GH_OWNER/$REPO already exists!"
+    # Clone or navigate to it if not already present locally
+    if [[ ! -d "$REPO" ]]; then
+        echo ">>>>>..... Cloning existing repo..."
+        gh repo clone "$GH_OWNER/$REPO"
+    fi
+    echo ">>>>>..... Changing to repo directory..."
+    cd "$REPO"
     read -p "Press [Enter] key to continue..."
     exit 0
 fi
 gh repo create "$GH_OWNER/$REPO" --private --description "Terraform Repo"
 echo ">>>>>..... Cloning the repo!!!"
 echo " cloning https://github.com/$GH_OWNER/$REPO.git"
-git clone "https://github.com/$GH_OWNER/$REPO.git"
+gh repo clone "$GH_OWNER/$REPO"
 echo "changing dir to /$REPO"
 cd "$REPO"
 echo ">>>>>..... building the basic structure!!!" 
