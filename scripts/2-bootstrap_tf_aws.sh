@@ -20,11 +20,19 @@ echo "┌───────────────────────�
 echo "│  2. TF bootstrapping: Creating S3 bucket && DynamoDB table    │"
 echo "└───────────────────────────────────────────────────────────────┘"
 echo ">>>>>..... Creating S3 bucket (if not exists)..."
-aws s3api create-bucket \
-  --bucket "$TF_BACKEND_S3_BUCKET" \
-  --region "$AWS_REGION" \
-  # --create-bucket-configuration LocationConstraint="$AWS_REGION" \
-  > /dev/null || true # Ignore error if bucket already exists and /dev/null to suppress output
+# us-east-1 is special - it doesn't accept LocationConstraint parameter
+if [ "$AWS_REGION" = "us-east-1" ]; then
+  aws s3api create-bucket \
+    --bucket "$TF_BACKEND_S3_BUCKET" \
+    --region "$AWS_REGION" \
+    > /dev/null || true # Ignore error if bucket already exists and /dev/null to suppress output
+else
+  aws s3api create-bucket \
+    --bucket "$TF_BACKEND_S3_BUCKET" \
+    --region "$AWS_REGION" \
+    --create-bucket-configuration LocationConstraint="$AWS_REGION" \
+    > /dev/null || true # Ignore error if bucket already exists and /dev/null to suppress output
+fi
 
 echo ">>>>>..... Configuring S3 bucket settings..."
 aws s3api put-bucket-versioning --bucket "$TF_BACKEND_S3_BUCKET" --versioning-configuration Status=Enabled
