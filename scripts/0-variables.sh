@@ -1,9 +1,9 @@
 #!/bin/bash
 # ---- fill these in ----
-GH_OWNER="dmkappel"
-REPO="tf-aws-test1-client1"
-AWS_ACCOUNT_ID="725857994970"
-AWS_REGION="us-east-1"
+GH_OWNER="haytemEffectual"
+REPO="tf-aws-<projectname>-<clientname>"
+AWS_ACCOUNT_ID="000000000000"
+AWS_REGION="us-west-2"
 # VPC_CIDR="10.0.0.0/24"  # TODO: set VPC_CIDR if the VPC is needed to be created via TF
 #
 # backend names (you can customize)
