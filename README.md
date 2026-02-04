@@ -51,7 +51,7 @@ PipeCrafter is a Python-based automation tool that scaffolds complete **Terrafor
 ### Required Tools
 - **Python 3.x** (with `subprocess`, `os`, `re` modules)
 - **AWS CLI** configured with credentials for target account
-- **GitHub CLI (`gh`)** authenticated to your GitHub account
+- **GitHub CLI (`gh`)** minimum version 2.86 - authenticated to your GitHub account
 - **Git** for repository operations
 - **Bash shell** for script execution
 
