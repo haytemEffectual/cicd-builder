@@ -1,8 +1,8 @@
 #!/bin/bash
-# ---- fill these in ----
-GH_OWNER="haytemEffectual"
-REPO="tf-aws-<projectname>-<clientname>"
-AWS_ACCOUNT_ID="000000000000"
+# ---- fill these in ---- 
+GH_OWNER="effectualinc" # GitHub username or organization name
+REPO="tf-aws-mod-fsxmanager" 
+AWS_ACCOUNT_ID="357457024966"
 AWS_REGION="us-west-2"
 # VPC_CIDR="10.0.0.0/24"  # TODO: set VPC_CIDR if the VPC is needed to be created via TF
 #

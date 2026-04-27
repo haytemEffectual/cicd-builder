@@ -35,38 +35,38 @@ class bcolors:
 
 def run_step_1(myrepo_path, gh_owner, repo):
     print(f'{bcolors.OKBLUE}####### 1- Creating repo structure and remote repo {gh_owner}/{repo} #######{bcolors.ENDC}')
-    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/1-repo_structure.sh")], check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/1-repo_structure.sh")], check=True, env=os.environ)
     print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... Repo structure created locally and has been pushed to remote repo.{bcolors.ENDC}')
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_2(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 2- Setting TF backend structure (S3 + DDB), IAM permissions, and OIDC role in AWS #######{bcolors.ENDC}')
-    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/2-bootstrap_tf_aws.sh")], check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/2-bootstrap_tf_aws.sh")], check=True, env=os.environ)
     print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... TF backend structure and IAM roles created in AWS.{bcolors.ENDC}')
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_3(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 3- Configuring GitHub variables and secrets #######{bcolors.ENDC}')
-    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/3-set_gh_variables.sh")], check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/3-set_gh_variables.sh")], check=True, env=os.environ)
     print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... GitHub variables and secrets configured.{bcolors.ENDC}')
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_4(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 4- Creating cicd gh actions workflows #######{bcolors.ENDC}')
-    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/4-workflow_ci.sh")], check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/4-workflow_ci.sh")], check=True, env=os.environ)
     print (f'{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... GitHub Actions workflows created and pushed to remote repo.{bcolors.ENDC}')
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_5(myrepo_path):
     print(f'{bcolors.OKBLUE}####### 5- Configuring main branch protection rules #######{bcolors.ENDC}')
     input(f"{bcolors.WARNING}This would require to upgrade to GH plus or change this repo to PUBLIC. Press [Enter] to continue...{bcolors.ENDC}")
-    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/5-protect_main.sh")], check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/5-protect_main.sh")], check=True, env=os.environ)
     print (f"{bcolors.OKGREEN}### this step is COMPLETE!!! 👍 ... Main branch protection rules configured.{bcolors.ENDC}")
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
 
 def run_step_6(myrepo_path):
     print(f'{bcolors.WARNING}####### Undoing step 2: destroying TF backend (S3 + DDB) and IAM role in AWS #######{bcolors.ENDC}')
-    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/undo_bootstrap.sh")], check=True)
+    subprocess.run(["bash", os.path.join(myrepo_path, "scripts/undo_bootstrap.sh")], check=True, env=os.environ)
     print (f"{bcolors.OKGREEN}########## this step is COMPLETE!!! 👍 ... Cleanup TF backend resources in AWS is complete !!! . . . ##########{bcolors.ENDC}")
     input(f"{bcolors.OKCYAN}Press [Enter] to continue...{bcolors.ENDC}")
     
@@ -87,8 +87,28 @@ def read_variables(file_path):
 
 myrepo_path = os.getcwd()
 
+# Configure git to trust this directory (fixes ownership issues in dev containers)
+try:
+    subprocess.run(
+        ["git", "config", "--global", "--add", "safe.directory", myrepo_path],
+        check=False,  # Don't fail if already configured
+        capture_output=True
+    )
+except Exception:
+    pass  # Ignore if git config fails
+
 # Read variables from shell script
 shell_vars = read_variables(os.path.join(myrepo_path, "scripts/0-variables.sh"))
+
+# Check for GitHub token (GitHub CLI requires GH_TOKEN)
+if 'GITHUB_TOKEN' in os.environ:
+    os.environ['GH_TOKEN'] = os.environ['GITHUB_TOKEN']
+elif 'GH_TOKEN' not in os.environ:
+    print(f"{bcolors.WARNING}Warning: GH_TOKEN not found in environment.{bcolors.ENDC}")
+    print("GitHub CLI requires authentication. Please set GH_TOKEN or GITHUB_TOKEN environment variable.")
+    gh_token = input("Enter your GitHub token (or press Enter to skip): ").strip()
+    if gh_token:
+        os.environ['GH_TOKEN'] = gh_token
 
 # Use shell script values if available, otherwise prompt for input
 GH_OWNER = shell_vars.get('GH_OWNER', '') or input("what is GitHub Owner name? ")

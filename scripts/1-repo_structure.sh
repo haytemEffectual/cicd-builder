@@ -55,7 +55,7 @@ if [[ "$confirm_push" == "y" || "$confirm_push" == "Y" ]]; then
     git push -u origin main
 else
     echo "Push to remote repo skipped."
-fi      
+fi
 # echo ">>>>>..... Repo structure created and pushed to remote repo !!!"
 # read -p "Press [Enter] key to continue..."
 
